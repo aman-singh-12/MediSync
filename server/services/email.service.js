@@ -1,13 +1,19 @@
-// Email service: sends OTP and transactional emails via nodemailer using Brevo SMTP.
+// Email service: sends OTP and transactional emails via nodemailer.
 const nodemailer = require('nodemailer');
 
+const EMAIL_USER = process.env.EMAIL_USER || 'medisync.healthcare@gmail.com';
+const EMAIL_PASS = process.env.EMAIL_PASS;
+const NORMALIZED_EMAIL_PASS = String(EMAIL_PASS || '').replace(/\s+/g, '');
+const SMTP_TIMEOUT_MS = Number(process.env.OTP_SMTP_TIMEOUT_MS || 10000);
+
 const transporter = nodemailer.createTransport({
-	host: process.env.SMTP_HOST,
-	port: Number(process.env.SMTP_PORT),
-	secure: false,
+	service: 'gmail',
+	connectionTimeout: SMTP_TIMEOUT_MS,
+	greetingTimeout: SMTP_TIMEOUT_MS,
+	socketTimeout: SMTP_TIMEOUT_MS,
 	auth: {
-		user: process.env.SMTP_USER,
-		pass: process.env.SMTP_PASS,
+		user: EMAIL_USER,
+		pass: NORMALIZED_EMAIL_PASS,
 	},
 });
 
@@ -17,12 +23,12 @@ const transporter = nodemailer.createTransport({
  * @param {string} otp - 6-digit OTP code
  */
 const sendOtpEmail = async (to, otp) => {
-	if (!process.env.SMTP_PASS) {
-		throw new Error('CRITICAL: SMTP_PASS is not configured in server .env. Email delivery is required for security.');
+	if (!NORMALIZED_EMAIL_PASS) {
+		throw new Error('CRITICAL: EMAIL_PASS is not configured in server .env. Email delivery is required for security.');
 	}
 
 	const mailOptions = {
-		from: `"MediSync Clinical" <${process.env.EMAIL_FROM}>`,
+		from: `"MediSync Clinical" <${EMAIL_USER}>`,
 		to,
 		subject: `[MediSync] Security Code: ${otp}`,
 		html: `
