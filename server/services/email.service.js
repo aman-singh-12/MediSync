@@ -1,7 +1,15 @@
-// Email service: sends OTP and transactional emails via Resend.
-const { Resend } = require('resend');
+// Email service: sends OTP and transactional emails via nodemailer using Brevo SMTP.
+const nodemailer = require('nodemailer');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+	host: process.env.SMTP_HOST,
+	port: Number(process.env.SMTP_PORT),
+	secure: false,
+	auth: {
+		user: process.env.SMTP_USER,
+		pass: process.env.SMTP_PASS,
+	},
+});
 
 /**
  * Sends a real OTP email. No fallback or bypass allowed.
@@ -9,12 +17,12 @@ const resend = new Resend(process.env.RESEND_API_KEY);
  * @param {string} otp - 6-digit OTP code
  */
 const sendOtpEmail = async (to, otp) => {
-	if (!process.env.RESEND_API_KEY) {
-		throw new Error('CRITICAL: RESEND_API_KEY is not configured in server .env. Email delivery is required for security.');
+	if (!process.env.SMTP_PASS) {
+		throw new Error('CRITICAL: SMTP_PASS is not configured in server .env. Email delivery is required for security.');
 	}
 
 	const mailOptions = {
-		from: `"MediSync Clinical" <onboarding@resend.dev>`,
+		from: `"MediSync Clinical" <${process.env.EMAIL_FROM}>`,
 		to,
 		subject: `[MediSync] Security Code: ${otp}`,
 		html: `
@@ -137,11 +145,7 @@ const sendOtpEmail = async (to, otp) => {
 	};
 
 	try {
-		const { error } = await resend.emails.send(mailOptions);
-		if (error) {
-			console.error(`[CRITICAL] OTP Email Delivery Failed to ${to}:`, error);
-			throw new Error(`Failed to deliver verification email. Please try again later.`);
-		}
+		await transporter.sendMail(mailOptions);
 		return { delivered: true };
 	} catch (error) {
 		console.error(`[CRITICAL] OTP Email Delivery Failed to ${to}:`, error.message);
