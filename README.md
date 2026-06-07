@@ -1,9 +1,6 @@
 # 🏥 MediSync Healthcare Platform
 
 MediSync is a sophisticated, full-stack digital health management portal designed to bridge the gap between patients and healthcare providers. It provides a seamless, secure, and efficient ecosystem for booking appointments, managing medical records, and streamlining clinical workflows.
-
-**🌐 Live Demo:** [medisync-healthcare.vercel.app](https://medisync-healthcare.vercel.app)
-
 ---
 
 ## 🚀 Features
@@ -70,7 +67,7 @@ MediSync/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/gautami-04/medisync.git
+git clone https://github.com/aman-singh-12/MediSync.git
 cd MediSync
 ```
 
