@@ -1,0 +1,395 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.headerTitle {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+
+.headerSubtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.statCard {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  transition: var(--transition-all);
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--brand-primary);
+}
+
+.statCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle at top right, var(--brand-light), transparent);
+  opacity: 0.5;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.statHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.statIconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-light);
+  color: var(--brand-primary);
+  font-size: 1.5rem;
+}
+
+.statBadge {
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.badgeNew { background: #dcfce7; color: #15803d; }
+.badgeTotal { background: #f1f5f9; color: #475569; }
+.badgeMonthly { background: #fefce8; color: #a16207; }
+
+.statTitle {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 8px;
+}
+
+.statValue {
+  font-size: 2.75rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -1.5px;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+.chartCard {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.chartTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
+}
+
+.chartLink {
+  color: var(--brand-primary);
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 10px 20px;
+  background: var(--brand-light);
+  border-radius: 12px;
+  transition: var(--transition-all);
+}
+
+.chartLink:hover {
+  background: var(--brand-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.scheduleList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.scheduleCard {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.scheduleCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+  border-color: var(--brand-primary);
+}
+
+.scheduleCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.scheduleCardTime {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: var(--brand-primary);
+  font-size: 0.95rem;
+  padding: 8px 14px;
+  background: var(--brand-light);
+  border-radius: 12px;
+}
+
+.statusPill {
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+}
+
+.statusBooked { background: #fffbeb; color: #d97706; }
+.statusCompleted { background: #ecfdf5; color: #059669; }
+.statusConfirmed { background: #eff6ff; color: #2563eb; }
+
+.scheduleCardUser {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.scheduleCardAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: var(--brand-primary);
+  overflow: hidden;
+  border: 2px solid white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.scheduleCardAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scheduleCardInfo {
+  flex: 1;
+}
+
+.scheduleCardName {
+  font-weight: 800;
+  color: var(--text-main);
+  font-size: 1.05rem;
+}
+
+.scheduleCardReason {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.scheduleCardActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.scheduleActionBtn, .scheduleActionBtnPrimary {
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  text-align: center;
+}
+
+.scheduleActionBtn {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.scheduleActionBtnPrimary {
+  background: var(--brand-primary);
+  color: white;
+}
+
+.scheduleActionBtn:hover {
+  background: #e2e8f0;
+}
+
+.scheduleActionBtnPrimary:hover {
+  background: var(--brand-hover);
+  box-shadow: 0 4px 12px rgba(48, 164, 108, 0.25);
+}
+
+.recentPatientsCard {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+}
+
+.table th {
+  text-align: left;
+  padding: 12px 24px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+.table tr {
+  background: white;
+}
+
+.table td {
+  padding: 24px;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table td:first-child {
+  border-left: 1px solid var(--border-color);
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.table td:last-child {
+  border-right: 1px solid var(--border-color);
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.patientCell {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.patientAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: var(--shadow-sm);
+}
+
+.patientName {
+  font-weight: 800;
+  color: var(--text-main);
+  font-size: 1.05rem;
+}
+
+.patientId {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.statusDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--brand-light);
+}
+
+.dotStable { background: var(--brand-primary); }
+
+@media (max-width: 1200px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .scheduleList {
+    grid-template-columns: 1fr;
+  }
+}

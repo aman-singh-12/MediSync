@@ -1,0 +1,104 @@
+:root {
+  /* Premium Healthcare Design System */
+  --bg-main: #fcfdfd;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  
+  /* Primary Theme Color: Green 9 (#30A46C) */
+  --brand-primary: #30a46c;
+  --brand-primary-rgb: 48, 164, 108;
+  --brand-hover: #268a5a;
+  --brand-light: #ecfdf5;
+  
+  --primary: var(--brand-primary); 
+  --primary-rgb: var(--brand-primary-rgb);
+  --primary-light: #f1f5f9;
+  --primary-dark: #0f172a;
+  
+  --accent: #10b981;
+  
+  --text-main: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+  
+  --border-color: #f1f5f9;
+  --border-medium: #e2e8f0;
+  --input-bg: #f8fafc;
+  --input-focus: var(--brand-primary);
+
+  /* Layout & Spacing */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+  
+  /* Modern Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 20px 50px -10px rgba(48, 164, 108, 0.1);
+  
+  --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s ease;
+  
+  /* Grid Layout */
+  --sidebar-width: 280px;
+}
+
+body {
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-main);
+  background: var(--bg-main);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition-fast);
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Utility Classes */
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--brand-primary), #10b981);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

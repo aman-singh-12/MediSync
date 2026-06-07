@@ -1,0 +1,311 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.headerSubtitle {
+  color: var(--brand-primary);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.headerTitle {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -1px;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 6px 6px 6px 20px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-all);
+}
+
+.searchBox:focus-within {
+  border-color: var(--brand-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.searchInput {
+  border: none;
+  background: none;
+  padding: 8px 0;
+  width: 100%;
+  font-size: 1rem;
+  color: var(--text-main);
+  outline: none;
+}
+
+.searchBtn {
+  background: var(--brand-primary);
+  color: white;
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.tabBar {
+  display: flex;
+  gap: 32px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.tabItem {
+  background: none;
+  border: none;
+  padding: 16px 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition-fast);
+}
+
+.tabActive {
+  color: var(--brand-primary);
+}
+
+.tabActive::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--brand-primary);
+  border-radius: 3px 3px 0 0;
+}
+
+.calendarCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.appointmentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: var(--transition-all);
+  background: white;
+  gap: 20px;
+}
+
+.appointmentItem:hover {
+  border-color: var(--brand-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.patientInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.patientAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.patientNameText {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.appointmentMeta {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.actionsWrap {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 99px;
+  text-transform: uppercase;
+}
+
+.statusBooked { background: #dcf1e7; color: #1b6348; }
+.statusOther { background: #f1f5f9; color: #64748b; }
+
+.primaryBtn, .secondaryBtn, .successBtn, .dangerBtn, .outlineBtn {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--transition-all);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.primaryBtn { background: var(--brand-primary); color: white; }
+.secondaryBtn { background: #f1f5f9; color: #475569; }
+.successBtn { background: #dcf1e7; color: #15803d; }
+.dangerBtn { background: #fef2f2; color: #dc2626; }
+.outlineBtn { background: white; color: var(--brand-primary); border: 2px solid var(--brand-primary); }
+
+.primaryBtn:hover { background: var(--brand-hover); transform: translateY(-1px); }
+.secondaryBtn:hover { background: #e2e8f0; transform: translateY(-1px); }
+.successBtn:hover { background: #d1eadb; transform: translateY(-1px); }
+.dangerBtn:hover { background: #fee2e2; transform: translateY(-1px); }
+.outlineBtn:hover { background: var(--brand-light); transform: translateY(-1px); }
+
+
+@media (max-width: 1024px) {
+  .appointmentItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .actionsWrap {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+}
+
+.rescheduleModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modalContent {
+  background: white;
+  padding: 40px;
+  border-radius: 28px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: var(--shadow-xl);
+  margin: auto;
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin-bottom: 24px;
+  letter-spacing: -0.5px;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 14px 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  margin-bottom: 20px;
+  font-size: 1rem;
+  background: #f8fafc;
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.modalInput:focus {
+  border-color: var(--brand-primary);
+  background: white;
+  box-shadow: 0 0 0 4px var(--brand-light);
+}
+
+.modalActions {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.modalBtn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition-all);
+}
+
+.modalBtnCancel {
+  background: #f1f5f9;
+  color: var(--text-secondary);
+}
+
+.modalBtnConfirm {
+  background: var(--brand-primary);
+  color: white;
+  box-shadow: 0 8px 16px rgba(48, 164, 108, 0.2);
+}
+
+.settingLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+  .headerRow { flex-direction: column; align-items: flex-start; }
+  .searchBox { max-width: 100%; }
+}

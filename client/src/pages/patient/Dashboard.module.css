@@ -1,0 +1,364 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bg-dark);
+}
+
+.headerSubtitle {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.statCard {
+  background: white;
+  padding: 24px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.statCardGold {
+  background: linear-gradient(135deg, #dfb455 0%, #d09c3a 100%);
+  color: white;
+}
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--bg-1);
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.statCardGold .statIcon {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.statValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.statLabel {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.statCardGold .statLabel {
+  color: rgba(255,255,255,0.8);
+}
+
+.statBadge {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: var(--bg-1);
+  color: var(--brand-primary);
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.dashboardContent {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.chartCard {
+  background: var(--input-bg);
+  border-radius: 24px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.upcomingCard {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.upcomingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.upcomingList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.upcomingItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.upcomingItem img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.healthTip {
+  margin-top: auto;
+  background: var(--bg-1);
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.recordsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.recordCard {
+  background: var(--input-bg);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.recordIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-primary);
+}
+
+@media (max-width: 1200px) {
+  .dashboardContent {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .recordsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .newAppointmentBtn {
+    width: 100%;
+  }
+}
+
+.loader {
+  padding: 100px;
+  text-align: center;
+  color: var(--brand-primary);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.errorAlert {
+  padding: 16px 24px;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 12px;
+  border: 1px solid #fee2e2;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.newAppointmentBtn {
+  width: auto;
+  padding: 0 28px;
+}
+
+/* Today's Schedule */
+.todayCard {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  grid-column: span 2;
+  margin-bottom: 24px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.todayBadge {
+  background: #fdf2f8;
+  color: #db2777;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timelineItem {
+  display: flex;
+  gap: 20px;
+}
+
+.timeLabel {
+  width: 70px;
+  font-weight: 800;
+  color: var(--brand-primary);
+  font-size: 0.9rem;
+  padding-top: 4px;
+}
+
+.timelineContent {
+  flex: 1;
+  position: relative;
+  padding-bottom: 16px;
+  border-left: 2px solid #f1f5f9;
+  padding-left: 24px;
+}
+
+.timelineContent::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+}
+
+.timelineMain {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.docInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.docName {
+  font-weight: 800;
+  color: var(--bg-dark);
+}
+
+.docSpec {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.statusPill {
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 4px 12px;
+  border-radius: 99px;
+  text-transform: uppercase;
+}
+
+.booked { background: #eff6ff; color: #2563eb; }
+.confirmed { background: #ecfdf5; color: #059669; }
+.completed { background: #f0f9ff; color: #0284c7; }
+.cancelled { background: #fef2f2; color: #dc2626; }
+.rescheduled { background: #fffbeb; color: #d97706; }
+
+@media (max-width: 768px) {
+  .todayCard {
+    grid-column: span 1;
+  }
+  .timelineItem {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .timeLabel {
+    width: auto;
+  }
+  .timelineContent {
+    border-left: none;
+    padding-left: 0;
+  }
+  .timelineContent::before {
+    display: none;
+  }
+}
+

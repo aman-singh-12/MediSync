@@ -1,0 +1,188 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.header {
+  margin-bottom: 8px;
+}
+
+.headerTitle {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -1px;
+}
+
+.headerSubtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-top: 4px;
+}
+
+.searchSection {
+  background: white;
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  display: grid;
+  grid-template-columns: 1fr 1fr 200px;
+  gap: 24px;
+  align-items: flex-end;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.input, .select {
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: 2px solid var(--border-color);
+  background: #f8fafc;
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.input:focus, .select:focus {
+  border-color: var(--brand-primary);
+  background: white;
+  box-shadow: 0 0 0 4px var(--brand-light);
+}
+
+.resultsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.doctorCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.doctorCard:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--brand-primary);
+}
+
+.doctorHeader {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: var(--brand-light);
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 900;
+}
+
+.doctorInfo h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
+}
+
+.doctorInfo p {
+  margin: 4px 0 0;
+  color: var(--brand-primary);
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.doctorDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.bookButton {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.noResults {
+  text-align: center;
+  padding: 80px 40px;
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.noResults h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 12px;
+}
+
+.noResults p {
+  color: var(--text-muted);
+}
+
+@media (max-width: 1024px) {
+  .searchSection {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .searchSection {
+    grid-template-columns: 1fr;
+    padding: 24px;
+  }
+  
+  .headerTitle {
+    font-size: 1.75rem;
+  }
+  
+  .resultsGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,69 @@
+.otpWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.otpRow {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.otpInput {
+  width: 48px;
+  height: 56px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.otpInput:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(48, 164, 108, 0.1);
+  outline: none;
+}
+
+.otpInputFilled {
+  border-color: var(--brand-primary);
+  background: white;
+  box-shadow: 0 4px 12px rgba(48, 164, 108, 0.08);
+}
+
+.otpInputError {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.errorText {
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+@media (max-width: 480px) {
+  .otpInput {
+    width: 42px;
+    height: 56px;
+    font-size: 1.5rem;
+    border-radius: 12px;
+  }
+  .otpRow {
+    gap: 8px;
+  }
+}

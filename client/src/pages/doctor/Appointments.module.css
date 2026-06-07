@@ -1,0 +1,86 @@
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.headerTitle { margin: 0; font-size: 2rem; font-weight: 700; color: var(--bg-dark); }
+.headerSubtitle { margin: 8px 0 0; color: var(--text-secondary); }
+.btnRefresh { background: white; color: var(--bg-dark); border: 2px solid var(--bg-dark); border-radius: 12px; padding: 10px 24px; display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: all 0.2s ease; }
+.btnRefresh:hover { background: var(--bg-dark); color: white; }
+
+/* Stats Row */
+.statsRow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+.statMini { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); text-align: center; }
+.statMiniValue { font-size: 1.8rem; font-weight: 700; color: var(--bg-dark); }
+.statMiniLabel { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+/* Filter Tabs */
+.filterTabs { display: flex; gap: 8px; margin-bottom: 32px; background: white; padding: 6px; border-radius: 16px; width: fit-content; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.filterTab { padding: 10px 24px; border-radius: 12px; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; }
+.filterTab:hover { color: var(--brand-primary); }
+.filterTabActive { background: var(--bg-dark); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.filterCount { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; margin-left: 8px; padding: 0 6px; }
+.filterTabActive .filterCount { background: rgba(255,255,255,0.3); color: white; }
+.filterTab .filterCount { background: rgba(0,0,0,0.06); color: var(--text-secondary); }
+
+/* Cards */
+.appointmentsList { display: flex; flex-direction: column; gap: 16px; }
+.appointmentCard { background: white; border-radius: 20px; padding: 24px 28px; display: flex; align-items: center; gap: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.03); transition: all 0.2s ease; }
+.appointmentCard:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); transform: translateY(-2px); }
+.patientAvatar { width: 56px; height: 56px; border-radius: 16px; background: var(--input-bg); color: var(--brand-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.appointmentInfo { flex: 1; }
+.patientName { font-weight: 700; font-size: 1.05rem; color: var(--bg-dark); margin-bottom: 4px; }
+.appointmentMeta { font-size: 0.85rem; color: var(--text-secondary); }
+.feeTag { display: inline-flex; align-items: center; gap: 4px; background: #fff8e1; color: #f57f17; padding: 2px 10px; border-radius: 99px; font-size: 0.8rem; font-weight: 700; margin-left: 8px; }
+.dateTimeBlock { text-align: right; flex-shrink: 0; }
+.dateText { font-weight: 700; font-size: 1rem; color: var(--bg-dark); margin-bottom: 4px; }
+.timeText { font-size: 0.85rem; color: var(--text-secondary); }
+
+/* Status Pills */
+.statusPill { display: inline-block; padding: 4px 14px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+.statusBooked { background: #e3f2fd; color: #1565c0; }
+.statusConfirmed { background: #e8f5e9; color: #2e7d32; }
+.statusCompleted { background: #f3e5f5; color: #7b1fa2; }
+.statusCancelled { background: #fce4ec; color: #c62828; }
+.statusRescheduled { background: #fff3e0; color: #e65100; }
+
+/* Action Buttons */
+.actionBtns { display: flex; gap: 8px; flex-shrink: 0; }
+.btnConfirm { padding: 8px 16px; border-radius: 10px; border: none; background: #e8f5e9; color: #2e7d32; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; }
+.btnConfirm:hover { background: #2e7d32; color: white; }
+.btnComplete { padding: 8px 16px; border-radius: 10px; border: none; background: #f3e5f5; color: #7b1fa2; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; }
+.btnComplete:hover { background: #7b1fa2; color: white; }
+.btnCancel { padding: 8px 16px; border-radius: 10px; border: 1px solid #e0e0e0; background: white; color: #c62828; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; }
+.btnCancel:hover { background: #fce4ec; border-color: #c62828; }
+
+/* Modal */
+.modalOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.2s ease; }
+.modal { background: white; border-radius: 24px; padding: 40px; width: 100%; max-width: 520px; box-shadow: 0 24px 48px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.modalTitle { margin: 0 0 8px; font-size: 1.5rem; font-weight: 700; color: var(--bg-dark); }
+.modalSubtitle { margin: 0 0 28px; color: var(--text-secondary); font-size: 0.95rem; }
+.formGroup { margin-bottom: 20px; }
+.formLabel { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.formTextarea { width: 100%; padding: 14px 18px; border: 2px solid var(--input-bg); border-radius: 12px; font-size: 0.95rem; color: var(--text-primary); background: var(--input-bg); outline: none; transition: border-color 0.2s ease; box-sizing: border-box; resize: vertical; min-height: 80px; }
+.formTextarea:focus { border-color: var(--brand-primary); background: white; }
+.modalActions { display: flex; gap: 12px; margin-top: 28px; }
+.btnSubmit { flex: 1; padding: 14px; border-radius: 12px; border: none; background: #7b1fa2; color: white; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.2s ease; }
+.btnSubmit:hover { background: #6a1b9a; }
+.btnSubmit:disabled { opacity: 0.6; cursor: not-allowed; }
+.btnClose { flex: 0.5; padding: 14px; border-radius: 12px; border: 2px solid #e0e0e0; background: white; color: var(--text-secondary); font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s ease; }
+.btnClose:hover { border-color: var(--text-secondary); }
+
+/* Empty/Messages */
+.emptyState { text-align: center; padding: 60px 24px; background: white; border-radius: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.03); }
+.emptyIcon { width: 80px; height: 80px; border-radius: 50%; background: var(--input-bg); color: var(--brand-primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.emptyTitle { font-size: 1.3rem; font-weight: 700; color: var(--bg-dark); margin: 0 0 8px; }
+.emptyText { color: var(--text-secondary); font-size: 0.95rem; margin: 0; }
+.errorMsg { background: #fce4ec; color: #c62828; padding: 12px 20px; border-radius: 12px; font-weight: 600; margin-bottom: 16px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; animation: fadeIn 0.3s ease; }
+.successMsg { background: #e8f5e9; color: #2e7d32; padding: 12px 20px; border-radius: 12px; font-weight: 600; margin-bottom: 16px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; animation: fadeIn 0.3s ease; }
+.msgClose { background: none; border: none; cursor: pointer; font-size: 1.2rem; opacity: 0.6; padding: 0 4px; color: inherit; }
+.msgClose:hover { opacity: 1; }
+
+@media (max-width: 992px) { .statsRow { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) {
+  .appointmentCard { flex-direction: column; align-items: flex-start; }
+  .dateTimeBlock { text-align: left; }
+  .header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .statsRow { grid-template-columns: 1fr 1fr; }
+}

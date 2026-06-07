@@ -1,0 +1,313 @@
+.header {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bg-dark);
+}
+
+.headerSubtitle {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+
+.btnPrimary {
+  background: var(--brand-primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 99px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.summaryCard {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.summaryCardGreen {
+  background: var(--brand-primary);
+  color: white;
+  border-radius: 24px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(33, 103, 78, 0.2);
+}
+
+.summaryLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.summaryValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--bg-dark);
+  margin-bottom: 16px;
+}
+
+.summarySub {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trendUp {
+  color: #4cd964;
+  background: rgba(76, 217, 100, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.iconWrapper {
+  position: absolute;
+  top: 32px;
+  right: 32px;
+  width: 48px;
+  height: 48px;
+  background: #fcf4dd;
+  color: #d09c3a;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tableSection {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.tableTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--bg-dark);
+  margin: 0;
+}
+
+.tableActions {
+  display: flex;
+  gap: 12px;
+}
+
+.btnOutline {
+  background: var(--input-bg);
+  color: var(--bg-dark);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  padding: 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.table td {
+  padding: 24px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.dateCell {
+  font-weight: 700;
+  color: var(--bg-dark);
+}
+
+.idText {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.doctorCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doctorIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--input-bg);
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doctorName {
+  font-weight: 700;
+  color: var(--bg-dark);
+}
+
+.doctorSpec {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.amount {
+  font-weight: 700;
+  color: var(--bg-dark);
+}
+
+.methodCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.statusPill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.statusPaid {
+  background: rgba(76, 217, 100, 0.1);
+  color: #4cd964;
+}
+
+.statusPending {
+  background: #fcf4dd;
+  color: #d09c3a;
+}
+
+.statusFailed {
+  background: rgba(216, 75, 75, 0.1);
+  color: #d84b4b;
+}
+
+.statusRefunded {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.actionLink {
+  color: var(--brand-primary);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.actionLinkRetry {
+  color: white;
+  background: var(--brand-primary);
+  padding: 8px 16px;
+  border-radius: 99px;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.tableFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.pagination {
+  display: flex;
+  gap: 8px;
+}
+
+.pageBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--input-bg);
+  color: var(--text-secondary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.pageBtnActive {
+  background: var(--brand-primary);
+  color: white;
+}
+
+@media (max-width: 1200px) {
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
+}

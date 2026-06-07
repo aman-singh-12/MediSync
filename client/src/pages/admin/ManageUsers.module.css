@@ -1,0 +1,213 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--padding-lg);
+  animation: fadeIn var(--transition-normal);
+}
+
+.header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--bg-card);
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: var(--glass-border);
+}
+
+.tabBtn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tabBtn:hover {
+  color: var(--primary-accent);
+  background: rgba(0, 102, 255, 0.05);
+}
+
+.tabBtn.active {
+  background: var(--primary-accent);
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 102, 255, 0.3);
+}
+
+.tableContainer {
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  border: var(--glass-border);
+  box-shadow: var(--shadow-md);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.table th,
+.table td {
+  padding: 1.2rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.table th {
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  background: rgba(243, 249, 255, 0.5);
+}
+
+.table tr {
+  transition: background var(--transition-fast);
+}
+
+.table tbody tr:hover {
+  background: rgba(0, 102, 255, 0.02);
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-accent), #00c6ff);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.email {
+  color: var(--text-secondary);
+}
+
+.roleBadge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.roleBadge.admin {
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--danger-color);
+}
+
+.roleBadge.doctor {
+  background: rgba(52, 199, 89, 0.1);
+  color: var(--success-color);
+}
+
+.roleBadge.patient,
+.roleBadge.user {
+  background: rgba(0, 102, 255, 0.1);
+  color: var(--primary-accent);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.editBtn {
+  background: rgba(0, 102, 255, 0.1);
+  color: var(--primary-accent);
+}
+
+.editBtn:hover {
+  background: var(--primary-accent);
+  color: white;
+}
+
+.deleteBtn {
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--danger-color);
+}
+
+.deleteBtn:hover {
+  background: var(--danger-color);
+  color: white;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  font-weight: 600;
+  color: var(--primary-accent);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .tabBtn {
+    white-space: nowrap;
+  }
+}

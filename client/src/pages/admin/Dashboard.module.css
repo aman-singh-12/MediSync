@@ -1,0 +1,225 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bg-dark);
+}
+
+.headerSubtitle {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+
+.roleBadge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 18px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.statCard {
+  background: white;
+  padding: 24px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  transition: transform 0.2s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+}
+
+.statCardPurple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--bg-1);
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.statCardPurple .statIcon {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.statValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.statLabel {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.statCardPurple .statLabel {
+  color: rgba(255,255,255,0.7);
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+}
+
+.card {
+  background: white;
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.cardTitle {
+  margin: 0 0 24px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--bg-dark);
+}
+
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.userRow:last-child {
+  border-bottom: none;
+}
+
+.userAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.avatarPatient { background: #e3f2fd; color: #1565c0; }
+.avatarDoctor { background: #e8f5e9; color: #2e7d32; }
+.avatarAdmin { background: #f3e5f5; color: #7b1fa2; }
+
+.userInfo {
+  flex: 1;
+}
+
+.userName {
+  font-weight: 600;
+  color: var(--bg-dark);
+}
+
+.userEmail {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.userRolePill {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.rolePatient { background: #e3f2fd; color: #1565c0; }
+.roleDoctor { background: #e8f5e9; color: #2e7d32; }
+.roleAdmin { background: #f3e5f5; color: #7b1fa2; }
+
+.breakdownGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.breakdownItem {
+  background: var(--input-bg);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+}
+
+.breakdownValue {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--bg-dark);
+  margin-bottom: 4px;
+}
+
+.breakdownLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.emptyMsg {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  padding: 16px 0;
+}
+
+@media (max-width: 1200px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .breakdownGrid {
+    grid-template-columns: 1fr;
+  }
+}

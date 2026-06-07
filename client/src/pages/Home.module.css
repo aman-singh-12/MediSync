@@ -1,0 +1,232 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.headerTitle {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -1px;
+}
+
+.headerSubtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.statCard {
+  background: white;
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border: 1px solid var(--border-color);
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.statCard:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--brand-primary);
+}
+
+.statCardGold {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+}
+
+.statIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: var(--brand-light);
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.statCardGold .statIcon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.statValue {
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+
+.statLabel {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.statCardGold .statLabel {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.statBadge {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: var(--brand-light);
+  color: var(--brand-primary);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.dashboardContent {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 32px;
+  margin-bottom: 48px;
+}
+
+.chartCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-md);
+}
+
+.upcomingCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.upcomingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.upcomingList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.upcomingItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.upcomingItem:last-child {
+  border-bottom: none;
+}
+
+.upcomingItem img {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: var(--shadow-sm);
+}
+
+.healthTip {
+  margin-top: auto;
+  background: var(--brand-light);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #dcfce7;
+}
+
+.recordsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.recordCard {
+  background: white;
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid var(--border-color);
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
+}
+
+.recordCard:hover {
+  border-color: var(--brand-primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.recordIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--brand-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-primary);
+  font-size: 1.25rem;
+}
+
+@media (max-width: 1200px) {
+  .dashboardContent {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+  .recordsGrid {
+    grid-template-columns: 1fr;
+  }
+}
