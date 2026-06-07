@@ -1,6 +1,14 @@
 # 🏥 MediSync Healthcare Platform
 
 MediSync is a sophisticated, full-stack digital health management portal designed to bridge the gap between patients and healthcare providers. It provides a seamless, secure, and efficient ecosystem for booking appointments, managing medical records, and streamlining clinical workflows.
+
+---
+
+## 🌐 Live Demo
+
+You can access the live version of the application here:
+**[MediSync Live (Vercel)](https://medi-sync-7zpm-l7a5jjio8-amans-projects-b25d385c.vercel.app/login)**
+
 ---
 
 ## 🚀 Features
