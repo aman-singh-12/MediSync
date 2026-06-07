@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 	host: "smtp.gmail.com",
 	port: 587,
 	secure: false,
-	family: 4,
+	family:4,
 	connectionTimeout: SMTP_TIMEOUT_MS,
 	greetingTimeout: SMTP_TIMEOUT_MS,
 	socketTimeout: SMTP_TIMEOUT_MS,
@@ -19,6 +19,8 @@ const transporter = nodemailer.createTransport({
 		pass: NORMALIZED_EMAIL_PASS,
 	},
 });
+
+console.log("SMTP CONFIG LOADED");
 
 /**
  * Sends a real OTP email. No fallback or bypass allowed.
