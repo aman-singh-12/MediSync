@@ -1,26 +1,7 @@
-// Email service: sends OTP and transactional emails via nodemailer.
-const nodemailer = require('nodemailer');
+// Email service: sends OTP and transactional emails via Resend.
+const { Resend } = require('resend');
 
-const EMAIL_USER = process.env.EMAIL_USER || 'medisync.healthcare@gmail.com';
-const EMAIL_PASS = process.env.EMAIL_PASS;
-const NORMALIZED_EMAIL_PASS = String(EMAIL_PASS || '').replace(/\s+/g, '');
-const SMTP_TIMEOUT_MS = Number(process.env.OTP_SMTP_TIMEOUT_MS || 10000);
-
-const transporter = nodemailer.createTransport({
-	host: "smtp.gmail.com",
-	port: 587,
-	secure: false,
-	family:4,
-	connectionTimeout: SMTP_TIMEOUT_MS,
-	greetingTimeout: SMTP_TIMEOUT_MS,
-	socketTimeout: SMTP_TIMEOUT_MS,
-	auth: {
-		user: EMAIL_USER,
-		pass: NORMALIZED_EMAIL_PASS,
-	},
-});
-
-console.log("SMTP CONFIG LOADED");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
  * Sends a real OTP email. No fallback or bypass allowed.
@@ -28,12 +9,12 @@ console.log("SMTP CONFIG LOADED");
  * @param {string} otp - 6-digit OTP code
  */
 const sendOtpEmail = async (to, otp) => {
-	if (!NORMALIZED_EMAIL_PASS) {
-		throw new Error('CRITICAL: EMAIL_PASS is not configured in server .env. Email delivery is required for security.');
+	if (!process.env.RESEND_API_KEY) {
+		throw new Error('CRITICAL: RESEND_API_KEY is not configured in server .env. Email delivery is required for security.');
 	}
 
 	const mailOptions = {
-		from: `"MediSync Clinical" <${EMAIL_USER}>`,
+		from: `"MediSync Clinical" <onboarding@resend.dev>`,
 		to,
 		subject: `[MediSync] Security Code: ${otp}`,
 		html: `
@@ -156,7 +137,11 @@ const sendOtpEmail = async (to, otp) => {
 	};
 
 	try {
-		await transporter.sendMail(mailOptions);
+		const { error } = await resend.emails.send(mailOptions);
+		if (error) {
+			console.error(`[CRITICAL] OTP Email Delivery Failed to ${to}:`, error);
+			throw new Error(`Failed to deliver verification email. Please try again later.`);
+		}
 		return { delivered: true };
 	} catch (error) {
 		console.error(`[CRITICAL] OTP Email Delivery Failed to ${to}:`, error.message);
