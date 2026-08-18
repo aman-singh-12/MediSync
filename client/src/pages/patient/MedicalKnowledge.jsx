@@ -18,7 +18,7 @@ const MedicalKnowledge = () => {
     setSources([]);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('medisync_token');
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/rag/query`, 
         { question },
