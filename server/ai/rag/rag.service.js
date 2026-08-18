@@ -1,13 +1,9 @@
-const { ChatOpenAI } = require("@langchain/openai");
 const { retrieveSimilarDocuments } = require("./retriever");
 const { ragPrompt } = require("./rag.prompt");
 const { StringOutputParser } = require("@langchain/core/output_parsers");
+const { generateWithFallback } = require("../providers/llm.provider");
 
 const generateAnswer = async (question) => {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is not configured.");
-  }
-
   // 1. Search vector database for similar documents
   const documents = await retrieveSimilarDocuments(question);
   
@@ -22,16 +18,11 @@ const generateAnswer = async (question) => {
   const context = documents.map(doc => doc.pageContent).join("\n\n");
   const sources = [...new Set(documents.map(doc => doc.metadata.source))];
 
-  // 3. Initialize LLM
-  const model = new ChatOpenAI({
-    openAIApiKey: process.env.OPENAI_API_KEY,
-    modelName: 'gpt-4o-mini',
-    temperature: 0,
-  });
+  // 3. Define the chain callback
+  const chainCallback = (model) => ragPrompt.pipe(model).pipe(new StringOutputParser());
 
-  // 4. Create and run the chain
-  const chain = ragPrompt.pipe(model).pipe(new StringOutputParser());
-  const answer = await chain.invoke({
+  // 4. Generate answer using fallback provider
+  const answer = await generateWithFallback(chainCallback, {
     context,
     question
   });
