@@ -1,5 +1,35 @@
-node_modules/
+# Environment variables / secrets
 .env
+.env.*
+!.env.example
+
+# Node dependencies
+node_modules/
+
+# Build output
 dist/
 build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# Test/coverage output
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# Local Docker data
+*.local
