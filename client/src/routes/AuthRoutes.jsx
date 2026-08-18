@@ -17,6 +17,7 @@ import PatientDashboard from "../pages/patient/Dashboard";
 import MedicalRecords from "../pages/patient/MedicalRecords";
 import DoctorSearch from "../pages/patient/DoctorSearch";
 import Favorites from "../pages/patient/Favorites";
+import MedicalKnowledge from "../pages/patient/MedicalKnowledge";
 import ManageUsers from "../pages/admin/ManageUsers";
 import VerifyDoctors from "../pages/admin/VerifyDoctors";
 
@@ -84,6 +85,7 @@ const AuthRoutes = () => {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/book-appointment" element={<Appointments />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/medical-knowledge" element={<MedicalKnowledge />} />
 
           {/* Doctor Specific */}
           <Route path="/doctor/dashboard" element={<DoctorDashboard />} />

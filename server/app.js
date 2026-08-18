@@ -20,6 +20,7 @@ const paymentRoutes = require('./routes/payment.routes');
 const prescriptionRoutes = require('./routes/prescription.routes');
 const adminRoutes = require('./routes/admin.routes');
 const notificationRoutes = require('./routes/notification.routes');
+const ragRoutes = require('./routes/rag.routes');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
 
 app.use(cors());
@@ -41,6 +42,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/rag', ragRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

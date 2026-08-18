@@ -13,6 +13,14 @@ services:
     ports:
       - "6379:6379"
 
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: medisync_chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
   server:
     build: ./server
     container_name: medisync_server
@@ -42,3 +50,4 @@ services:
 
 volumes:
   mongodb_data:
+  chroma_data:

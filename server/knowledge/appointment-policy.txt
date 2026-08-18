@@ -1,0 +1,5 @@
+MediSync Appointment Policy
+1. Booking: Appointments can be booked up to 30 days in advance.
+2. Arrival: Patients should arrive 15 minutes before their scheduled time.
+3. No-shows: Missing an appointment without prior notice may incur a fee.
+4. Rescheduling: You can reschedule your appointment up to 12 hours before the scheduled time.
