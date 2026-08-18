@@ -6,10 +6,25 @@ const PendingUser = require('../models/pendingUser.model');
 const Review = require('../models/review.model');
 const User = require('../models/user.model');
 const mongoose = require('mongoose');
+const redisClient = require('../config/redis');
 
 const getAllDoctors = async (req, res) => {
 	try {
 		const { specialization, hospital, minFee, maxFee, search } = req.query;
+
+		// Generate a unique cache key based on query parameters
+		const cacheKey = `doctors:${JSON.stringify(req.query || {})}`;
+		try {
+			const cachedData = await redisClient.get(cacheKey);
+			if (cachedData) {
+				console.log('Cache hit for getAllDoctors');
+				return res.json(JSON.parse(cachedData));
+			}
+			console.log('Cache miss for getAllDoctors');
+		} catch (err) {
+			console.error('Redis get error:', err);
+		}
+
 		let query = { isApproved: true };
 
 		if (specialization) {
@@ -34,6 +49,13 @@ const getAllDoctors = async (req, res) => {
 		const doctors = await Doctor.find(query)
 			.populate('user', 'name email role profilePicture')
 			.lean();
+			
+		try {
+			await redisClient.setEx(cacheKey, 3600, JSON.stringify(doctors)); // Cache for 1 hour
+		} catch (err) {
+			console.error('Redis setEx error:', err);
+		}
+
 		res.json(doctors);
 	} catch (error) {
 		res.status(500).json({ message: error.message });
@@ -42,10 +64,30 @@ const getAllDoctors = async (req, res) => {
 
 const getDoctorById = async (req, res) => {
 	try {
-		const doctor = await Doctor.findById(req.params.id).populate('user', 'name email role profilePicture');
+		const doctorId = req.params.id;
+		const cacheKey = `doctor:${doctorId}`;
+
+		try {
+			const cachedData = await redisClient.get(cacheKey);
+			if (cachedData) {
+				console.log(`Cache hit for getDoctorById: ${doctorId}`);
+				return res.json(JSON.parse(cachedData));
+			}
+			console.log(`Cache miss for getDoctorById: ${doctorId}`);
+		} catch (err) {
+			console.error('Redis get error:', err);
+		}
+
+		const doctor = await Doctor.findById(doctorId).populate('user', 'name email role profilePicture');
 
 		if (!doctor || !doctor.isApproved) {
 			return res.status(404).json({ message: 'Doctor not found or not approved' });
+		}
+
+		try {
+			await redisClient.setEx(cacheKey, 3600, JSON.stringify(doctor));
+		} catch (err) {
+			console.error('Redis setEx error:', err);
 		}
 
 		res.json(doctor);

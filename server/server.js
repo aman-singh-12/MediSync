@@ -6,6 +6,8 @@ const app = require('./app');
 const connectDB = require('./config/db');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
+const { initializeSocket } = require('./config/socket');
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads');
@@ -17,6 +19,12 @@ connectDB();
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+// Create HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.io
+initializeSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Server running on port http://localhost:${PORT}`);
 });

@@ -5,6 +5,7 @@ const Patient = require('../models/patient.model');
 const Payment = require('../models/payment.model');
 const User = require('../models/user.model');
 const { createNotification } = require('../services/notification.service');
+const { emitToUser } = require('../config/socket');
 const crypto = require('crypto');
 
 // Book appointment (patient)
@@ -129,6 +130,10 @@ exports.bookAppointment = async (req, res) => {
         title: 'New Appointment Booked',
         message: `A new appointment has been booked for ${date} at ${time}.`,
         data: { appointmentId: appointment._id }
+      });
+      emitToUser(doctorProfile.user, 'appointment.created', {
+        title: 'New Appointment Booked',
+        message: `A new appointment has been booked for ${date} at ${time}.`
       });
     }
 
@@ -278,6 +283,10 @@ exports.cancelAppointment = async (req, res) => {
           message: `Appointment on ${appointment.date} at ${appointment.time} has been cancelled by the patient.`,
           data: { appointmentId: appointment._id }
         });
+        emitToUser(targetDoctor.user, 'appointment.cancelled', {
+          title: 'Appointment Cancelled',
+          message: `Appointment on ${appointment.date} at ${appointment.time} has been cancelled by the patient.`
+        });
       }
     } else if (isDoctorOwner || isAdmin) {
       // Notify patient
@@ -289,6 +298,10 @@ exports.cancelAppointment = async (req, res) => {
           title: 'Appointment Cancelled',
           message: `Your appointment on ${appointment.date} at ${appointment.time} has been cancelled.`,
           data: { appointmentId: appointment._id }
+        });
+        emitToUser(targetPatient.user, 'appointment.cancelled', {
+          title: 'Appointment Cancelled',
+          message: `Your appointment on ${appointment.date} at ${appointment.time} has been cancelled.`
         });
       }
     }
@@ -427,6 +440,10 @@ exports.updateAppointmentStatus = async (req, res) => {
         message: `Your appointment status has been updated to ${status}.`,
         data: { appointmentId: appointment._id }
       });
+      emitToUser(targetPatient.user, 'appointment.updated', {
+        title: 'Appointment Updated',
+        message: `Your appointment status has been updated to ${status}.`
+      });
     }
 
     res.json({ message: `Appointment updated successfully`, appointment: populated });
@@ -509,6 +526,10 @@ exports.rescheduleAppointment = async (req, res) => {
         title: 'Appointment Rescheduled',
         message: `Appointment rescheduled to ${date} at ${time}.`,
         data: { appointmentId: updated._id }
+      });
+      emitToUser(recipientUser, 'appointment.rescheduled', {
+        title: 'Appointment Rescheduled',
+        message: `Appointment rescheduled to ${date} at ${time}.`
       });
     }
 
