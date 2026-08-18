@@ -1,0 +1,38 @@
+# MediSync Application Navigation Guide
+
+## Overview
+MediSync is a healthcare management application with distinct portals for Patients, Doctors, and Administrators.
+
+## Patient Navigation
+When logged in as a patient, you can access the following sections from the sidebar or dashboard:
+1. Dashboard: A quick overview of your health metrics and upcoming appointments.
+2. Find Doctors: Use this page to search for doctors, view their profiles, and check their availability.
+3. Appointments (or Appointment History): View past and upcoming appointments, and book new ones.
+4. Medical Records: Access your prescriptions, test results, and health history.
+5. Favorites: See your saved doctors.
+6. Payments: View transaction history and pay for appointments.
+7. Settings: Update your profile information, password, and preferences.
+
+## Doctor Navigation
+When logged in as a doctor, you can access the following sections:
+1. Dashboard: Overview of today's schedule and patient statistics.
+2. Appointments: Manage your upcoming patient appointments.
+3. My Patients: View records and history of patients you have treated.
+4. Availability: Set your working hours, break times, and unavailable days.
+5. Patient Reviews: See feedback from your patients.
+6. Financials: Track earnings and payouts.
+7. My Profile: Update your professional details and consultation fees.
+
+## Administrator Navigation
+When logged in as an admin, you can access:
+1. Admin Dashboard: System-wide analytics and overview.
+2. Manage Users: View and manage all patient and staff accounts.
+3. Verify Doctors: Review doctor applications, credentials, and approve them for practice.
+4. Transactions: Monitor all system payments.
+5. System Settings: Configure platform-wide rules.
+
+## Using the Interface
+* Sidebar Toggle: On mobile or smaller screens, use the menu icon in the top left to open the sidebar.
+* Notifications: Click the bell icon in the top right to view clinical alerts or system messages.
+* Support: Click the question mark icon in the top right to access help and support options.
+* Logout: The sign-out option is located at the bottom of the sidebar.

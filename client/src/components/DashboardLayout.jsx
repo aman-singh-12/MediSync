@@ -6,6 +6,7 @@ import { getDoctorAppointments, getMyAppointments } from "../services/appointmen
 import api from "../services/api";
 import styles from "./DashboardLayout.module.css";
 import { getImageUrl } from "../utils/imageUrl";
+import AIChatbot from "./ai/AIChatbot";
 import { 
   FiHome, 
   FiCalendar, 
@@ -287,6 +288,7 @@ const DashboardLayout = ({ children }) => {
           {children}
         </div>
       </main>
+      <AIChatbot />
     </div>
   );
 };

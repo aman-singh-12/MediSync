@@ -6,6 +6,7 @@ const getOpenAIProvider = () => {
   }
   return new ChatOpenAI({
     openAIApiKey: process.env.OPENAI_API_KEY,
+    model: 'gpt-4o-mini',
     modelName: 'gpt-4o-mini',
     temperature: 0,
   });

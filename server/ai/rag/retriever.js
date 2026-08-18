@@ -13,7 +13,8 @@ const getVectorStore = async () => {
 
 const retrieveSimilarDocuments = async (query, topK = 3) => {
   const vectorStore = await getVectorStore();
-  const results = await vectorStore.similaritySearch(query, topK);
+  // Using similaritySearchWithScore to evaluate relevance
+  const results = await vectorStore.similaritySearchWithScore(query, topK);
   return results;
 };
 

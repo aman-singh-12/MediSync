@@ -1,0 +1,19 @@
+# MediSync Appointment Booking & Management Guide
+
+## Booking an Appointment (Patients)
+1. Navigate to the "Find Doctors" section from your sidebar.
+2. Search for doctors by name, specialty, or clinic name.
+3. Click on a doctor's profile to view their details.
+4. Select an available time slot on their calendar.
+5. Confirm the booking. You may need to provide symptom details and process a payment depending on the clinic policies.
+
+## Canceling an Appointment (Patients)
+1. Navigate to the "Appointments" (or Appointment History) section.
+2. Find the upcoming appointment you wish to cancel.
+3. Click the "Cancel" option next to the appointment. Note that cancellations might be subject to the clinic's cancellation policy.
+
+## Managing Appointments (Doctors)
+1. Go to the "Appointments" section in the Doctor portal.
+2. View your upcoming schedule.
+3. You can mark appointments as completed, or if necessary, reschedule them by communicating with the patient.
+4. You can also view patient medical history directly from the appointment view before the consultation starts.

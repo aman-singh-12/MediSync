@@ -6,13 +6,14 @@ const { protect } = require('../middleware/auth.middleware');
 // POST /api/rag/query
 router.post('/query', protect, async (req, res) => {
   try {
-    const { question } = req.body;
+    const { question, chatHistory } = req.body;
+    const role = req.user?.role || 'patient';
     
     if (!question) {
       return res.status(400).json({ message: 'Question is required' });
     }
 
-    const result = await generateAnswer(question);
+    const result = await generateAnswer(question, chatHistory || [], role);
     res.json(result);
   } catch (error) {
     console.error('RAG query error:', error);
