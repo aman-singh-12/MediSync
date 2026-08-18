@@ -2,7 +2,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const { Chroma } = require("@langchain/community/vectorstores/chroma");
-const { RecursiveCharacterTextSplitter } = require("langchain/text_splitter");
+const { RecursiveCharacterTextSplitter } = require("@langchain/textsplitters");
 const { getEmbeddings } = require("./embeddings");
 
 const ingestData = async () => {
