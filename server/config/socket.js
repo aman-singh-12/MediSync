@@ -6,7 +6,9 @@ const userSockets = new Map(); // Map user._id to socket.id
 const initializeSocket = (server) => {
   io = socketIo(server, {
     cors: {
-      origin: '*', // For local dev, allow all. Should be restricted in prod.
+      origin: process.env.NODE_ENV === 'production' 
+        ? process.env.CLIENT_URL 
+        : (process.env.CLIENT_URL || '*'),
       methods: ['GET', 'POST']
     }
   });

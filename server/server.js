@@ -9,13 +9,13 @@ const path = require('path');
 const http = require('http');
 const { initializeSocket } = require('./config/socket');
 
+const { connectRedis } = require('./config/redis');
+
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
-
-connectDB();
 
 const PORT = process.env.PORT || 5000;
 
@@ -25,6 +25,19 @@ const server = http.createServer(app);
 // Initialize Socket.io
 initializeSocket(server);
 
-server.listen(PORT, () => {
-  console.log(`Server running on port http://localhost:${PORT}`);
-});
+const startServer = async () => {
+  try {
+    // Connect to databases
+    await connectDB();
+    await connectRedis();
+
+    server.listen(PORT, () => {
+      console.log(`Server running on port http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+};
+
+startServer();

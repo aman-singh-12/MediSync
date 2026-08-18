@@ -6,7 +6,7 @@ const PendingUser = require('../models/pendingUser.model');
 const Review = require('../models/review.model');
 const User = require('../models/user.model');
 const mongoose = require('mongoose');
-const redisClient = require('../config/redis');
+const { redisClient } = require('../config/redis');
 
 const getAllDoctors = async (req, res) => {
 	try {
