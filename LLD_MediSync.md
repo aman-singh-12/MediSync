@@ -55,7 +55,7 @@ Serves as the base for authentication.
 - `doctorId`: ObjectId (Ref -> Doctor)
 - `date`: Date
 - `timeSlot`: String (e.g., '10:00 AM - 10:30 AM')
-- `status`: Enum ['scheduled', 'completed', 'cancelled']
+- `status`: Enum ['booked', 'completed', 'cancelled', 'reschedule_requested']
 - `reasonForVisit`: String
 - `paymentStatus`: Enum ['pending', 'completed']
 
@@ -90,7 +90,8 @@ All endpoints are prefixed with `/api/v1`
 ### 3.4 Appointment Endpoints (`appointment.routes.js`)
 - `POST /appointments/book`: Create a new appointment.
 - `GET /appointments`: Get appointments for the logged-in user (behaves differently based on Patient vs Doctor role).
-- `PATCH /appointments/:id/status`: Update status (e.g., Doctor marking it 'completed').
+- `PATCH /appointments/:id/status`: Update status (e.g., Doctor marking it 'completed' or patient requesting a reschedule).
+- `PATCH /appointments/reschedule`: (Patient only) Request a new time slot, updates status to `reschedule_requested` for Doctor approval.
 
 ### 3.5 Admin Endpoints (`admin.routes.js`)
 - `GET /admin/pending-doctors`: List doctors awaiting verification.

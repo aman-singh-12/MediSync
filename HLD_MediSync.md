@@ -87,6 +87,31 @@ sequenceDiagram
     ReactApp-->>Patient: Display Success Modal/Redirect
 ```
 
+### 3.1 Appointment Rescheduling Flow
+
+```mermaid
+sequenceDiagram
+    actor Patient
+    participant ReactApp
+    participant ExpressAPI
+    participant MongoDB
+    actor Doctor
+
+    Patient->>ReactApp: Selects new Date & Time for Reschedule
+    ReactApp->>ExpressAPI: PATCH /api/appointments/reschedule
+    ExpressAPI->>MongoDB: Update status to 'reschedule_requested' & save temp new date/time
+    ExpressAPI-->>ReactApp: Success, Status is 'Pending'
+    ReactApp-->>Patient: Hides reschedule option, marks as Pending
+    
+    Doctor->>ReactApp: Views Dashboard
+    ReactApp->>ExpressAPI: GET /api/appointments
+    ExpressAPI-->>ReactApp: Returns appointments with 'reschedule_requested'
+    Doctor->>ReactApp: Approves Reschedule
+    ReactApp->>ExpressAPI: PATCH /api/appointments/:id/status (status: 'booked', date: newDate)
+    ExpressAPI->>MongoDB: Updates appointment status to 'booked' and commits new date/time
+    ExpressAPI-->>ReactApp: Success
+```
+
 ## 4. Security Architecture
 
 1. **Authentication**: Handled via JSON Web Tokens (JWT). Upon successful login, the server issues a JWT. The client must include this token in the `Authorization` header as a Bearer token for protected routes.

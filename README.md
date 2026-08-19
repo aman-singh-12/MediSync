@@ -16,7 +16,7 @@ You can access the live version of the application here:
 ### 👤 Patient Portal
 - **Intuitive Onboarding**: Easy registration and profile management.
 - **Doctor Discovery**: Search and filter doctors by specialization, availability, and ratings.
-- **Smart Appointment Booking**: Real-time scheduling with instant confirmation.
+- **Smart Appointment Booking**: Real-time scheduling with instant confirmation. Patients can request reschedules, which enter a "Pending" state awaiting doctor approval.
 - **Medical Records**: Secure access to prescriptions, reports, and consultation history.
 - **Review System**: Share feedback and rate your experience with practitioners.
 
@@ -105,3 +105,18 @@ npm run dev
 ```
 - **Client**: http://localhost:5173
 - **Server**: http://localhost:5000
+
+### 5. Running with Docker
+MediSync is fully containerized. To spin up the entire stack (MongoDB, Redis, ChromaDB, Server, Client):
+```bash
+docker compose up -d --build
+```
+- **Client**: http://localhost:3000
+- **Server**: http://localhost:5000
+
+### 6. Seeding Demo Data
+To quickly populate the database with robust demo data (50 Doctors, 50 Patients, and 30 Appointments using faker.js), execute the seed script inside the running server container:
+```bash
+docker exec medisync_server npm run seed
+```
+*(Alternatively, run `node server/seedComprehensive.js` directly if not using Docker).*

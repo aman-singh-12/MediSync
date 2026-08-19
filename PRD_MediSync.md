@@ -20,7 +20,7 @@ The patient-facing side of the application focuses on ease of access to healthca
 | :--- | :--- | :--- |
 | **User Onboarding & Profile Management** | Simple registration and login flow. Ability for patients to update personal details and medical history. | High |
 | **Doctor Discovery** | Search and filter capabilities to find doctors based on specialization, availability, and ratings. | High |
-| **Smart Appointment Booking** | Real-time scheduling system allowing patients to book, reschedule, or cancel appointments with instant confirmation. | High |
+| **Smart Appointment Booking** | Real-time scheduling system allowing patients to book, cancel, or request rescheduling. Rescheduling requests enter a 'Pending' state until the doctor approves. | High |
 | **Medical Records Access** | Secure centralized repository for patients to view past prescriptions, diagnostic reports, and consultation history. | High |
 | **Review & Rating System** | Mechanism for patients to provide feedback and rate their experience with a specific doctor post-consultation. | Medium |
 
@@ -30,7 +30,7 @@ The practitioner-facing side aims to optimize clinical workflow and patient mana
 | Feature | Description | Priority |
 | :--- | :--- | :--- |
 | **Patient Management** | A holistic dashboard to view patient medical history, past consultations, and upcoming appointments. | High |
-| **Schedule Control** | Tools to manage daily availability, block out times, and manage consultation slots dynamically. | High |
+| **Schedule Control** | Tools to manage daily availability, block out times, manage consultation slots dynamically, and approve/reject patient reschedule requests. | High |
 | **Digital Prescriptions** | Interface to generate, save, and securely share digital prescriptions with patients directly through the portal. | High |
 | **Analytics & Insights** | Basic reporting on appointment trends, patient volume, and accumulated feedback/ratings. | Medium |
 
