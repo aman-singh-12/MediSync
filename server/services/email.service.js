@@ -1,5 +1,11 @@
 // Email service: sends OTP and transactional emails via nodemailer.
 const nodemailer = require('nodemailer');
+const dns = require('dns');
+
+// Force IPv4 for Nodemailer to bypass Render's IPv6 networking block
+if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+}
 
 const EMAIL_USER = process.env.EMAIL_USER || 'medisync.healthcare@gmail.com';
 const EMAIL_PASS = process.env.EMAIL_PASS;
