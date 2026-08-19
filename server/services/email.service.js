@@ -2,28 +2,22 @@
 const nodemailer = require('nodemailer');
 const dns = require('dns');
 
-// Force IPv4 for Nodemailer to bypass Render's IPv6 networking block
-if (dns.setDefaultResultOrder) {
-    dns.setDefaultResultOrder('ipv4first');
-}
-
 const EMAIL_USER = process.env.EMAIL_USER || 'medisync.healthcare@gmail.com';
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const NORMALIZED_EMAIL_PASS = String(EMAIL_PASS || '').replace(/\s+/g, '');
 const SMTP_TIMEOUT_MS = Number(process.env.OTP_SMTP_TIMEOUT_MS || 10000);
 
-const transporter = nodemailer.createTransport({
-	host: 'smtp.gmail.com',
-	port: 465,
-	secure: true,
-	family: 4, // Force IPv4, as Render's outbound IPv6 is blocked
-	connectionTimeout: SMTP_TIMEOUT_MS,
-	greetingTimeout: SMTP_TIMEOUT_MS,
-	socketTimeout: SMTP_TIMEOUT_MS,
-	auth: {
-		user: EMAIL_USER,
-		pass: NORMALIZED_EMAIL_PASS,
-	},
+/**
+ * Resolves smtp.gmail.com to an IPv4 address.
+ */
+const getSmtpHost = () => new Promise((resolve) => {
+	dns.resolve4('smtp.gmail.com', (err, addresses) => {
+		if (!err && addresses && addresses.length > 0) {
+			resolve(addresses[0]);
+		} else {
+			resolve('smtp.gmail.com');
+		}
+	});
 });
 
 /**
@@ -35,6 +29,24 @@ const sendOtpEmail = async (to, otp) => {
 	if (!NORMALIZED_EMAIL_PASS) {
 		throw new Error('CRITICAL: EMAIL_PASS is not configured in server .env. Email delivery is required for security.');
 	}
+
+	const host = await getSmtpHost();
+
+	const transporter = nodemailer.createTransport({
+		host,
+		port: 465,
+		secure: true,
+		connectionTimeout: SMTP_TIMEOUT_MS,
+		greetingTimeout: SMTP_TIMEOUT_MS,
+		socketTimeout: SMTP_TIMEOUT_MS,
+		auth: {
+			user: EMAIL_USER,
+			pass: NORMALIZED_EMAIL_PASS,
+		},
+		tls: {
+			servername: 'smtp.gmail.com' // Crucial when connecting directly via IP
+		}
+	});
 
 	const mailOptions = {
 		from: `"MediSync Clinical" <${EMAIL_USER}>`,
