@@ -16,6 +16,7 @@ const transporter = nodemailer.createTransport({
 	host: 'smtp.gmail.com',
 	port: 465,
 	secure: true,
+	family: 4, // Force IPv4, as Render's outbound IPv6 is blocked
 	connectionTimeout: SMTP_TIMEOUT_MS,
 	greetingTimeout: SMTP_TIMEOUT_MS,
 	socketTimeout: SMTP_TIMEOUT_MS,
