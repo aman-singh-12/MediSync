@@ -7,7 +7,9 @@ const NORMALIZED_EMAIL_PASS = String(EMAIL_PASS || '').replace(/\s+/g, '');
 const SMTP_TIMEOUT_MS = Number(process.env.OTP_SMTP_TIMEOUT_MS || 10000);
 
 const transporter = nodemailer.createTransport({
-	service: 'gmail',
+	host: 'smtp.gmail.com',
+	port: 465,
+	secure: true,
 	connectionTimeout: SMTP_TIMEOUT_MS,
 	greetingTimeout: SMTP_TIMEOUT_MS,
 	socketTimeout: SMTP_TIMEOUT_MS,
