@@ -83,7 +83,9 @@ const PatientDashboard = () => {
                         <span className={styles.docName}>{app.doctor?.user?.name || 'Doctor'}</span>
                         <span className={styles.docSpec}>{app.doctor?.specialization || 'General Consultation'}</span>
                       </div>
-                      <span className={`${styles.statusPill} ${styles[app.status]}`}>{app.status}</span>
+                      <span className={`${styles.statusPill} ${styles[app.status]}`}>
+                        {app.status === 'reschedule_requested' ? 'Pending' : app.status}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -124,7 +126,7 @@ const PatientDashboard = () => {
                     background: app.status === 'confirmed' ? '#ecfdf5' : '#f1f5f9',
                     color: app.status === 'confirmed' ? '#059669' : '#64748b',
                     textTransform: 'uppercase'
-                  }}>{app.status}</span>
+                  }}>{app.status === 'reschedule_requested' ? 'Pending' : app.status}</span>
                 </div>
               ))
             ) : (
