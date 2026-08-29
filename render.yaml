@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: medisync-api
+    env: node
+    plan: free
+    buildCommand: npm install && npm --prefix server install
+    startCommand: npm --prefix server start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false

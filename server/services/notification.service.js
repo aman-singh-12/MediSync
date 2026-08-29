@@ -1,4 +1,3 @@
-// Notification service: convenience wrapper around Notification model for creating notifications.
 const Notification = require('../models/notification.model');
 
 /**
