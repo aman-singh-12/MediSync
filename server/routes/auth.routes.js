@@ -2,9 +2,10 @@
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
-const { register, login, sendOtp, verifyOtp, resetPassword, updateProfile, updatePassword } = require('../controllers/auth.controller');
+const { register, login, googleLogin, sendOtp, verifyOtp, resetPassword, updateProfile, updatePassword } = require('../controllers/auth.controller');
 const protect = require('../middleware/auth.middleware');
 const { validateRequest } = require('../middleware/validator.middleware');
+const { authLimiter } = require('../middleware/rateLimiter.middleware');
 
 router.post(
   '/register',
@@ -12,7 +13,8 @@ router.post(
     body('email').isEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
     body('role').isIn(['patient', 'doctor', 'admin']).withMessage('Invalid role'),
-    validateRequest
+    validateRequest,
+    authLimiter
   ],
   register
 );
@@ -22,9 +24,20 @@ router.post(
   [
     body('email').isEmail().withMessage('Valid email is required'),
     body('password').notEmpty().withMessage('Password is required'),
-    validateRequest
+    validateRequest,
+    authLimiter
   ],
   login
+);
+
+router.post(
+  '/google',
+  [
+    body('credential').notEmpty().withMessage('Credential is required'),
+    validateRequest,
+    authLimiter
+  ],
+  googleLogin
 );
 
 router.post(
@@ -32,7 +45,8 @@ router.post(
   [
     body('email').isEmail().withMessage('Valid email is required'),
     body('purpose').notEmpty().withMessage('Purpose is required'),
-    validateRequest
+    validateRequest,
+    authLimiter
   ],
   sendOtp
 );
@@ -42,7 +56,8 @@ router.post(
   [
     body('email').isEmail().withMessage('Valid email is required'),
     body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
-    validateRequest
+    validateRequest,
+    authLimiter
   ],
   verifyOtp
 );
@@ -58,7 +73,8 @@ router.post(
       }
       return true;
     }),
-    validateRequest
+    validateRequest,
+    authLimiter
   ],
   resetPassword
 );

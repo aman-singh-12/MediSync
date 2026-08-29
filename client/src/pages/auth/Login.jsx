@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { GoogleLogin } from '@react-oauth/google';
 import { FiCheckCircle, FiShield, FiActivity } from "react-icons/fi";
 import Button from "../../components/Button";
 import InputField from "../../components/InputField";
@@ -14,7 +15,7 @@ const Login = () => {
 	const [clickCount, setClickCount] = useState(0);
 	const [lastClickTime, setLastClickTime] = useState(0);
 	const navigate = useNavigate();
-	const { login, authLoading, isAuthenticated } = useAuth();
+	const { login, googleLogin, authLoading, isAuthenticated } = useAuth();
 
 	useEffect(() => {
 		if (isAuthenticated) navigate("/dashboard", { replace: true });
@@ -55,6 +56,18 @@ const Login = () => {
 			}
 		} catch (err) {
 			setAlert({ type: "error", message: "A technical error occurred. Please try again." });
+		}
+	};
+
+	const handleGoogleSuccess = async (credentialResponse) => {
+		setAlert(null);
+		try {
+			const res = await googleLogin(credentialResponse.credential);
+			if (!res.success) {
+				setAlert({ type: "error", message: res.message });
+			}
+		} catch (err) {
+			setAlert({ type: "error", message: "Google Login failed. Please try again." });
 		}
 	};
 
@@ -129,6 +142,21 @@ const Login = () => {
 
 					<div style={{ textAlign: 'center', marginTop: '32px', fontSize: '0.9rem', color: '#64748b' }}>
 						New to MediSync? <Link to="/register" style={{ color: "#10b981", fontWeight: 700, textDecoration: 'none' }}>Create an account</Link>
+					</div>
+					
+					<div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
+						<div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }}></div>
+						<div style={{ margin: '0 10px', color: '#94a3b8', fontSize: '0.85rem' }}>OR</div>
+						<div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }}></div>
+					</div>
+
+					<div style={{ display: 'flex', justifyContent: 'center' }}>
+						<GoogleLogin
+							onSuccess={handleGoogleSuccess}
+							onError={() => {
+								setAlert({ type: "error", message: "Google Login Failed" });
+							}}
+						/>
 					</div>
 				</div>
 			</div>

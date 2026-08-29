@@ -31,4 +31,28 @@ const generateWithFallback = async (chainCallback, inputs) => {
   }
 };
 
-module.exports = { generateWithFallback };
+const streamWithFallback = async (chainCallback, inputs) => {
+  try {
+    const openaiModel = getOpenAIProvider();
+    const chain = chainCallback(openaiModel);
+    console.log("LLM provider (Stream): OpenAI");
+    return await chain.stream(inputs);
+  } catch (error) {
+    const isApiError = error.status === 429 || error.status >= 500 || error.message.includes('quota') || error.message.includes('timeout') || error.message.includes('rate limit');
+    
+    if (isApiError) {
+      console.warn(`OpenAI streaming failed: ${error.message}. Falling back to Groq.`);
+      try {
+        const groqModel = getGroqProvider();
+        const chain = chainCallback(groqModel);
+        console.log("LLM provider (Stream): Groq");
+        return await chain.stream(inputs);
+      } catch (groqError) {
+        throw groqError;
+      }
+    }
+    throw error;
+  }
+};
+
+module.exports = { generateWithFallback, streamWithFallback };

@@ -23,9 +23,12 @@ const notificationRoutes = require('./routes/notification.routes');
 const ragRoutes = require('./routes/rag.routes');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
 
+const { apiLimiter } = require('./middleware/rateLimiter.middleware');
+
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/', apiLimiter);
 app.get('/', (req, res) => {
   res.send('API is running...');
 });

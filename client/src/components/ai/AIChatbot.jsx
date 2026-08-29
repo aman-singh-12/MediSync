@@ -63,6 +63,15 @@ const AIChatbot = () => {
   // sendMessage abstracts the API call for future Multi-step Agent architecture
   const sendMessage = async (messageText) => {
     setIsLoading(true);
+    // Add AI placeholder message to UI for streaming
+    const aiMessageId = Date.now().toString() + '_ai';
+    setMessages(prev => [...prev, {
+      id: aiMessageId,
+      role: 'ai',
+      content: '',
+      sources: []
+    }]);
+
     try {
       // Get the last 6 messages to send as history, excluding system/welcome messages and errors
       const historyToSend = messages
@@ -70,20 +79,61 @@ const AIChatbot = () => {
         .slice(-6)
         .map(m => ({ role: m.role, content: m.content }));
 
-      // Call the existing RAG endpoint. api.js already attaches the Bearer token.
-      const response = await api.post('/api/rag/query', { 
-        question: messageText,
-        chatHistory: historyToSend
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch('http://localhost:5000/api/rag/query-stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          question: messageText,
+          chatHistory: historyToSend
+        })
       });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      setIsLoading(false); // Stop general loading indicator, start streaming text
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
       
-      const aiMessage = {
-        id: Date.now().toString() + '_ai',
-        role: 'ai',
-        content: response.data.answer,
-        sources: response.data.sources || []
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
+      let done = false;
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n').filter(line => line.trim() !== '');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.replace('data: ', '');
+              try {
+                const data = JSON.parse(dataStr);
+                
+                if (data.type === 'sources') {
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === aiMessageId ? { ...msg, sources: data.sources } : msg
+                  ));
+                } else if (data.type === 'chunk') {
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === aiMessageId ? { ...msg, content: msg.content + data.content } : msg
+                  ));
+                } else if (data.type === 'error') {
+                  console.error('Stream error:', data.message);
+                }
+              } catch (e) {
+                console.warn('Error parsing stream data', e);
+              }
+            }
+          }
+        }
+      }
+
     } catch (error) {
       console.error('Chatbot API Error:', error);
       const errorMessage = {
@@ -92,7 +142,6 @@ const AIChatbot = () => {
         content: "Sorry, I couldn't process that request right now. Please try again."
       };
       setMessages(prev => [...prev, errorMessage]);
-    } finally {
       setIsLoading(false);
     }
   };

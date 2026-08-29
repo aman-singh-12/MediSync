@@ -24,3 +24,8 @@ export const resetPassword = async (payload) => {
   const response = await api.post("/api/auth/reset-password", payload);
   return response.data;
 };
+
+export const googleLoginUser = async (credential) => {
+  const response = await api.post("/api/auth/google", { credential });
+  return response.data;
+};

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useMemo, useState } from "react";
-import { loginUser } from "../services/authService";
+import { loginUser, googleLoginUser } from "../services/authService";
 import api from "../services/api";
 
 const TOKEN_KEY = "medisync_token";
@@ -124,6 +124,35 @@ export const AuthProvider = ({ children }) => {
 		[persistSession]
 	);
 
+	const googleLogin = useCallback(
+		async (credential) => {
+			setAuthLoading(true);
+			try {
+				const data = await googleLoginUser(credential);
+				const { nextToken, nextUser } = extractSessionFromAuthPayload(data, {
+					role: "patient",
+				});
+
+				if (!nextToken) {
+					throw new Error("Google login succeeded but token was not returned.");
+				}
+
+				persistSession(nextToken, nextUser);
+				return { success: true, data };
+			} catch (error) {
+				const message =
+					error?.response?.data?.message ||
+					error?.message ||
+					"Unable to sign in with Google.";
+
+				return { success: false, message };
+			} finally {
+				setAuthLoading(false);
+			}
+		},
+		[persistSession]
+	);
+
 	const completeAuthSession = useCallback(
 		(authPayload, fallbackUser = {}) => {
 			const { nextToken, nextUser } = extractSessionFromAuthPayload(authPayload, fallbackUser);
@@ -166,12 +195,13 @@ export const AuthProvider = ({ children }) => {
 			isAuthenticated: Boolean(token),
 			authLoading,
 			login,
+			googleLogin,
 			completeAuthSession,
 			logout,
 			updateUser,
 			refreshUser,
 		}),
-		[token, user, authLoading, login, completeAuthSession, logout, updateUser, refreshUser]
+		[token, user, authLoading, login, googleLogin, completeAuthSession, logout, updateUser, refreshUser]
 	);
 
 	return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

@@ -108,6 +108,64 @@ exports.login = async (req, res) => {
   }
 };
 
+// ================= GOOGLE LOGIN =================
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+exports.googleLogin = async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: 'Missing Google credential' });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const name = payload.name;
+    const profilePicture = payload.picture;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user automatically using Google details
+      const randomPassword = await bcrypt.hash(Math.random().toString(36).slice(-10), 10);
+      user = await User.create({
+        name,
+        email,
+        password: randomPassword,
+        role: 'patient', // default role
+        profilePicture,
+        isEmailVerified: true // automatically verified since it comes from Google
+      });
+
+      // Create Patient profile
+      await Patient.create({
+        user: user._id,
+        gender: '',
+        dateOfBirth: null
+      });
+    }
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture || '',
+      token: generateToken(user._id),
+    });
+    
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(401).json({ message: 'Invalid Google token' });
+  }
+};
+
 // ================= SEND OTP =================
 exports.sendOtp = async (req, res) => {
   try {
