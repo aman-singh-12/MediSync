@@ -21,6 +21,8 @@ const prescriptionRoutes = require('./routes/prescription.routes');
 const adminRoutes = require('./routes/admin.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const ragRoutes = require('./routes/rag.routes');
+const sqlAnalyticsRoutes = require('./routes/sqlAnalytics.routes');
+const systemRoutes = require('./routes/system.routes');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
 
 const { apiLimiter } = require('./middleware/rateLimiter.middleware');
@@ -46,6 +48,8 @@ app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/rag', ragRoutes);
+app.use('/api/sql', sqlAnalyticsRoutes);
+app.use('/api/system', systemRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
