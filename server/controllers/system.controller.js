@@ -1,3 +1,5 @@
+const hoistingDemo = require('../utils/hoistingDemo');
+
 // Demonstrate Node.js Event Loop Phases
 exports.getEventLoopDemo = (req, res) => {
   const executionOrder = [];
@@ -39,4 +41,10 @@ exports.getEventLoopDemo = (req, res) => {
   }, 50);
 
   executionOrder.push('2. Synchronous code finishes');
+};
+
+// Demonstrate JavaScript Hoisting
+exports.getHoistingDemo = (req, res) => {
+  const result = hoistingDemo.runHoistingDemo();
+  res.json(result);
 };

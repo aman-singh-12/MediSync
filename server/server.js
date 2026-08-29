@@ -10,6 +10,7 @@ const http = require('http');
 const { initializeSocket } = require('./config/socket');
 
 const { connectRedis } = require('./config/redis');
+const initCronJobs = require('./cron/jobs');
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads');
@@ -30,6 +31,9 @@ const startServer = async () => {
     // Connect to databases
     await connectDB();
     await connectRedis();
+    
+    // Initialize Cron Jobs
+    initCronJobs();
 
     server.listen(PORT, () => {
       console.log(`Server running on port http://localhost:${PORT}`);

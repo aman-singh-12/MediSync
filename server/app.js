@@ -6,7 +6,14 @@ const path = require('path');
 const morgan = require('morgan');
 const compression = require('compression'); 
 const authRoutes = require('./routes/auth.routes');
+const xss = require('xss-clean');
+const mongoSanitize = require('express-mongo-sanitize');
+
 const app = express();
+
+// Configure Server-Side Rendering (SSR) view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 app.use(compression());
 app.use(morgan(':method :url :status :response-time ms'));
 const userRoutes = require('./routes/user.routes');
@@ -29,10 +36,28 @@ const { apiLimiter } = require('./middleware/rateLimiter.middleware');
 
 app.use(cors());
 app.use(express.json());
+
+// Input Sanitization (Protects against XSS and NoSQL Injection)
+app.use(xss());
+app.use(mongoSanitize());
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/', apiLimiter);
 app.get('/', (req, res) => {
   res.send('API is running...');
+});
+
+// SSR Demonstration Route
+app.get('/invoice/:id', (req, res) => {
+  // Render the EJS template located in views/invoice.ejs
+  res.render('invoice', {
+    invoiceId: req.params.id,
+    date: new Date().toLocaleDateString(),
+    patientName: 'John Doe',
+    patientEmail: 'john@example.com',
+    doctorName: 'Dr. Smith',
+    amount: '150.00'
+  });
 });
 
 app.use('/api/appointments', appointmentRoutes);
