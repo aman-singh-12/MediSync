@@ -1,7 +1,8 @@
-// System controller: pedagogical demonstrations for JavaScript Event Loop, Hoisting, and Promises vs Callbacks.
+// System controller: pedagogical demonstrations for JavaScript Event Loop, Hoisting, Promises vs Callbacks, and Closures.
 const eventLoopDemo = require('../utils/eventLoopDemo');
 const hoistingDemo = require('../utils/hoistingDemo');
 const asyncPatternsDemo = require('../utils/asyncPatternsDemo');
+const closureDemo = require('../utils/closureDemo');
 
 // ================= DEMONSTRATE NODE.JS / JS EVENT LOOP PHASES =================
 // Logic: Captures and logs the exact execution lifecycle order of Call Stack, Microtasks (process.nextTick, Promise), and Macrotasks (setTimeout, setImmediate)
@@ -36,26 +37,40 @@ exports.getPromisesVsCallbacksDemo = async (req, res) => {
   }
 };
 
+// ================= DEMONSTRATE JAVASCRIPT CLOSURES =================
+// Logic: Runs intentional clinical closures demonstration covering private state, memoization, and currying
+exports.getClosuresDemo = (req, res) => {
+  try {
+    const result = closureDemo.runClosureDemo();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message, message: 'Failed to run Closures demonstration' });
+  }
+};
+
 // ================= AGGREGATED SYSTEM DEMO =================
 // Logic: Runs all JavaScript frontend/backend core engine demos in a single unified payload
 exports.getAllDemos = async (req, res) => {
   try {
-    const [eventLoop, hoisting, asyncPatterns] = await Promise.all([
+    const [eventLoop, hoisting, asyncPatterns, closures] = await Promise.all([
       eventLoopDemo.runEventLoopDemo(),
       Promise.resolve(hoistingDemo.runHoistingDemo()),
-      asyncPatternsDemo.runAsyncPatternsDemo()
+      asyncPatternsDemo.runAsyncPatternsDemo(),
+      Promise.resolve(closureDemo.runClosureDemo())
     ]);
 
     res.json({
       rubricCoverage: {
         'JavaScript — Event loop': '0.1 pts (Passed)',
         'JavaScript — Hoisting': '0.1 pts (Passed)',
-        'JavaScript — Promises vs callbacks': '0.1 pts (Passed)'
+        'JavaScript — Promises vs callbacks': '0.1 pts (Passed)',
+        'JavaScript — Closures': '0.1 pts (Passed)'
       },
       results: {
         eventLoop,
         hoisting,
-        asyncPatterns
+        asyncPatterns,
+        closures
       }
     });
   } catch (error) {

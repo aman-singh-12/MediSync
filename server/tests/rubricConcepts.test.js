@@ -1,6 +1,20 @@
 const request = require('supertest');
 const app = require('../app');
 const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
+const { 
+  createPatientPrescriptionTracker, 
+  createClinicalMemoizer, 
+  createRoleAuthorizer, 
+  calculateEgfr 
+} = require('../utils/closureDemo');
+const { 
+  ClinicalTriageSchema, 
+  PrescriptionAnalysisSchema, 
+  generateStructuredTriage,
+  generateStructuredPrescriptionAnalysis
+} = require('../ai/rag/structuredOutput.service');
 
 describe('Full Rubric Concepts Automated Verification Test Suite', () => {
   afterAll(async () => {
@@ -19,7 +33,6 @@ describe('Full Rubric Concepts Automated Verification Test Suite', () => {
       expect(res.body.timeline).toBeDefined();
 
       const stages = res.body.timeline.map(t => t.type);
-      // Synchronous code runs first, then microtasks (nextTick / Promise), then macrotasks (Timers / Check)
       expect(stages[0]).toBe('Synchronous');
       expect(stages.includes('Microtask')).toBe(true);
       expect(stages.includes('Macrotask')).toBe(true);
@@ -63,7 +76,136 @@ describe('Full Rubric Concepts Automated Verification Test Suite', () => {
     });
   });
 
-  // ================= 4. RELATIONAL SCHEMA DESIGN WITH PK/FK (0.2 PTS) =================
+  // ================= 4. JAVASCRIPT — CLOSURES (0.1 PTS) =================
+  describe('JavaScript — Closures (0.1 pts)', () => {
+    it('should verify private state encapsulation via factory function closure', () => {
+      const tracker = createPatientPrescriptionTracker('P-991', 'Metformin 500mg', 5);
+      
+      // Verify private variables are NOT directly accessible from outside
+      expect(tracker._dosesTaken).toBeUndefined();
+      expect(tracker._doseHistory).toBeUndefined();
+
+      // Verify privileged methods mutate and read private state safely
+      const log1 = tracker.logDose('Breakfast dose');
+      expect(log1.success).toBe(true);
+      expect(log1.record.doseNumber).toBe(1);
+
+      tracker.logDose('Dinner dose');
+      const compliance = tracker.getComplianceRate();
+      expect(compliance.dosesTaken).toBe(2);
+      expect(compliance.totalPrescribed).toBe(5);
+      expect(compliance.adherencePercentage).toBe('40%');
+
+      const audit = tracker.getAuditHistory();
+      expect(audit.length).toBe(2);
+    });
+
+    it('should verify memoization cache closure for clinical calculations', () => {
+      const memoizedEgfr = createClinicalMemoizer(calculateEgfr);
+      
+      const first = memoizedEgfr(1.0, 50, false);
+      expect(first.fromCache).toBe(false);
+      expect(first.stats.misses).toBe(1);
+      expect(first.stats.hits).toBe(0);
+
+      const second = memoizedEgfr(1.0, 50, false);
+      expect(second.fromCache).toBe(true);
+      expect(second.stats.hits).toBe(1);
+      expect(second.result).toBe(first.result);
+    });
+
+    it('should verify currying and partial application closure', () => {
+      const adminOnlyAuthorizer = createRoleAuthorizer(['admin'])('DeleteMedicalRecord');
+      
+      const doctorCheck = adminOnlyAuthorizer('doctor');
+      expect(doctorCheck.authorized).toBe(false);
+
+      const adminCheck = adminOnlyAuthorizer('admin');
+      expect(adminCheck.authorized).toBe(true);
+    });
+
+    it('should return 200 from the /api/system/closures endpoint', async () => {
+      const res = await request(app).get('/api/system/closures');
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty('topic', 'JavaScript — Closures');
+      expect(res.body).toHaveProperty('status', 'SUCCESS');
+      expect(res.body.demonstrations.length).toBe(3);
+    });
+  });
+
+  // ================= 5. STRUCTURED OUTPUTS (0.2 PTS) =================
+  describe('Structured Outputs (0.2 pts)', () => {
+    it('should validate ClinicalTriageSchema against Zod definition', () => {
+      const sampleTriage = {
+        triageId: 'TRG-TEST-1',
+        urgencyLevel: 'HIGH',
+        primaryConditionAssessment: 'Acute Appendicitis',
+        confidenceScore: 0.92,
+        differentialDiagnoses: [
+          { condition: 'Appendicitis', probability: 'HIGH', rationale: 'RLQ pain with fever' }
+        ],
+        recommendedDepartment: 'Surgery',
+        recommendedActions: ['Perform ultrasound', 'NPO status'],
+        redFlags: ['Peritoneal rebound tenderness'],
+        vitalSignsToMonitor: ['Temperature', 'Heart Rate'],
+        medicalDisclaimer: 'Clinical decision support only'
+      };
+
+      const parsed = ClinicalTriageSchema.safeParse(sampleTriage);
+      expect(parsed.success).toBe(true);
+    });
+
+    it('should reject non-conforming responses with Zod validation errors', () => {
+      const invalidData = {
+        urgencyLevel: 'INVALID_URGENCY_LEVEL',
+        confidenceScore: 1.5 // > 1.0 violates min/max
+      };
+      const parsed = ClinicalTriageSchema.safeParse(invalidData);
+      expect(parsed.success).toBe(false);
+    });
+
+    it('should generate structured triage successfully via API endpoint', async () => {
+      const res = await request(app)
+        .post('/api/rag/structured-triage')
+        .send({
+          symptoms: 'Patient reports radiating chest pressure and shortness of breath for 30 minutes',
+          history: 'Hypertension, former smoker',
+          vitals: 'BP 150/95, HR 102 bpm, SpO2 96%'
+        });
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.schemaValidated).toBe(true);
+      expect(res.body.data).toHaveProperty('urgencyLevel');
+      expect(res.body.data).toHaveProperty('recommendedDepartment');
+      expect(res.body.data).toHaveProperty('differentialDiagnoses');
+      expect(Array.isArray(res.body.data.recommendedActions)).toBe(true);
+    });
+
+    it('should return schema documentation from /api/rag/schemas', async () => {
+      const res = await request(app).get('/api/rag/schemas');
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty('topic', 'Structured outputs');
+      expect(res.body).toHaveProperty('status', 'SUCCESS');
+      expect(res.body.schemas).toHaveProperty('ClinicalTriageSchema');
+      expect(res.body.schemas).toHaveProperty('PrescriptionAnalysisSchema');
+    });
+  });
+
+  // ================= 6. GIT WORKFLOW (0.3 PTS) =================
+  describe('Git Workflow (0.3 pts)', () => {
+    it('should verify GIT_WORKFLOW.md documentation exists with proper branching strategy', () => {
+      const workflowPath = path.join(__dirname, '../../GIT_WORKFLOW.md');
+      expect(fs.existsSync(workflowPath)).toBe(true);
+      
+      const content = fs.readFileSync(workflowPath, 'utf8');
+      expect(content).toContain('Branching Strategy');
+      expect(content).toContain('Conventional Commits');
+      expect(content).toContain('Pull Request');
+    });
+  });
+
+  // ================= 7. RELATIONAL SCHEMA DESIGN WITH PK/FK (0.2 PTS) =================
   describe('Relational schema design with PK/FK (0.2 pts)', () => {
     it('should provide schema details with PKs, FKs, constraints, and normalization proofs', async () => {
       const res = await request(app).get('/api/sql/schema');
@@ -76,7 +218,7 @@ describe('Full Rubric Concepts Automated Verification Test Suite', () => {
     });
   });
 
-  // ================= 5. SQL JOINS (0.2 PTS) =================
+  // ================= 8. SQL JOINS (0.2 PTS) =================
   describe('SQL JOINs (0.2 pts)', () => {
     it('should execute and return all 6 SQL JOIN types with correct query results', async () => {
       const res = await request(app).get('/api/sql/joins/all');
@@ -90,7 +232,6 @@ describe('Full Rubric Concepts Automated Verification Test Suite', () => {
       expect(res.body.joins).toHaveProperty('crossJoin');
       expect(res.body.joins).toHaveProperty('selfJoin');
 
-      // Verify JOIN semantics
       expect(res.body.joins.innerJoin.joinType).toBe('INNER JOIN');
       expect(res.body.joins.leftJoin.joinType).toBe('LEFT OUTER JOIN');
       expect(res.body.joins.rightJoin.joinType).toBe('RIGHT OUTER JOIN');
