@@ -29,6 +29,7 @@ import AdminRegister from "../pages/admin/AdminRegister";
 import AdminLogin from "../pages/admin/AdminLogin";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminAppointments from "../pages/admin/AdminAppointments";
+import RubricConceptsLab from "../pages/admin/RubricConceptsLab";
 
 // Import Doctor Pages
 import DoctorDashboard from "../pages/doctor/Dashboard";
@@ -105,6 +106,8 @@ const AuthRoutes = () => {
           {/* Admin Specific Routes */}
           <Route path="/admin/users" element={<ManageUsers />} />
           <Route path="/admin/doctors" element={<VerifyDoctors />} />
+          <Route path="/admin/rubric-lab" element={<RubricConceptsLab />} />
+          <Route path="/rubric-lab" element={<RubricConceptsLab />} />
         </Route>
 
         <Route path="/onboarding-survey" element={<OnboardingSurvey />} />

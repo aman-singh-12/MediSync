@@ -4,8 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const morgan = require('morgan');
 const compression = require('compression'); 
-const xss = require('xss-clean');
-const mongoSanitize = require('express-mongo-sanitize');
+const { xssSanitizer, mongoSanitizer } = require('./middleware/sanitize.middleware');
 
 // Import Route Handlers
 const authRoutes = require('./routes/auth.routes');
@@ -46,8 +45,8 @@ app.use(cors());
 app.use(express.json());
 
 // 4. Security: Input Sanitization (Protects against XSS and NoSQL Query Injection)
-app.use(xss());
-app.use(mongoSanitize());
+app.use(xssSanitizer);
+app.use(mongoSanitizer);
 
 // 5. Static file hosting for uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

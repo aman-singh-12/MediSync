@@ -23,7 +23,8 @@ import {
   FiClock,
   FiUser,
   FiMenu,
-  FiX
+  FiX,
+  FiCpu
 } from 'react-icons/fi';
 
 const DashboardLayout = ({ children }) => {
@@ -73,6 +74,7 @@ const DashboardLayout = ({ children }) => {
     { path: '/dashboard', label: 'Admin Dashboard', icon: <FiHome /> },
     { path: '/admin/users', label: 'Manage Users', icon: <FiUsers /> },
     { path: '/admin/doctors', label: 'Verify Doctors', icon: <FiFileText /> },
+    { path: '/admin/rubric-lab', label: 'CS & Systems Lab', icon: <FiCpu /> },
     { path: '/payments', label: 'Transactions', icon: <FiCreditCard /> },
     { path: '/settings', label: 'System Settings', icon: <FiSettings /> },
   ];

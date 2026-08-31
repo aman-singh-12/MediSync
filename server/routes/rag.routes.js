@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { generateAnswer, generateAnswerStream } = require('../ai/rag/rag.service');
 const { protect } = require('../middleware/auth.middleware');
+
+// Helper to safely load RAG service dynamically
+const getRagService = () => {
+  return require('../ai/rag/rag.service');
+};
 
 // POST /api/rag/query
 router.post('/query', protect, async (req, res) => {
@@ -13,6 +17,7 @@ router.post('/query', protect, async (req, res) => {
       return res.status(400).json({ message: 'Question is required' });
     }
 
+    const { generateAnswer } = getRagService();
     const result = await generateAnswer(question, chatHistory || [], role);
     res.json(result);
   } catch (error) {
@@ -36,6 +41,7 @@ router.post('/query-stream', protect, async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
+    const { generateAnswerStream } = getRagService();
     const { stream, sources } = await generateAnswerStream(question, chatHistory || [], role);
 
     // Send sources first as a distinct event

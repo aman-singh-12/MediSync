@@ -9,6 +9,11 @@
     "rag:ingest": "node ai/rag/ingest.js",
     "test": "jest --forceExit"
   },
+  "jest": {
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js"
+    ]
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {

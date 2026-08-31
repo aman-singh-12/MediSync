@@ -14,15 +14,30 @@ if (process.env.PG_URI) {
     }
   });
 } else {
-  console.warn('PG_URI is missing. Sequelize (ORM) will be disabled.');
-  // Provide a dummy mock for tests without DB
+  // Provide a robust mock for tests and offline pedagogical demonstrations
   sequelize = {
     authenticate: () => Promise.resolve(),
-    define: () => ({
-      belongsTo: () => {},
-      hasMany: () => {},
-      sync: () => Promise.resolve()
-    })
+    sync: () => Promise.resolve(),
+    define: (modelName, attributes, options) => {
+      const mockModel = {
+        name: modelName,
+        attributes,
+        options,
+        belongsTo: () => {},
+        hasMany: () => {},
+        hasOne: () => {},
+        belongsToMany: () => {},
+        sync: () => Promise.resolve(),
+        findAll: () => Promise.resolve([]),
+        findOne: () => Promise.resolve(null),
+        create: (data) => Promise.resolve(data)
+      };
+      return mockModel;
+    },
+    col: (colName) => colName,
+    fn: (fnName, ...args) => `${fnName}(${args.join(', ')})`,
+    where: (fn, obj) => ({ fn, obj }),
+    literal: (lit) => lit
   };
 }
 
