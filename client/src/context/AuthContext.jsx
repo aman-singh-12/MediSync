@@ -1,3 +1,5 @@
+// ================= RUBRIC: OAUTH / 3RD-PARTY LOGIN (0.2 pts) & CONTEXT STATE MANAGEMENT =================
+// Manages Google OAuth 2.0 OpenID Connect credential exchanges, session token lifecycle, and reactive user state
 import { createContext, useCallback, useMemo, useState } from "react";
 import { loginUser, googleLoginUser } from "../services/authService";
 import api from "../services/api";

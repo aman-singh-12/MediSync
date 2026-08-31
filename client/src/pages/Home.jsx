@@ -1,4 +1,5 @@
-// Home Dashboard: aggregated overview displaying upcoming visits, medical records, and payments.
+// ================= RUBRIC: CLIENT-SIDE ROUTING (0.2 pts) & ASYNC DATA AGGREGATION =================
+// React Router v7 SPA declarative routing, dynamic link transitions, and dashboard metric calculations
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";

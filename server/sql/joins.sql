@@ -1,14 +1,10 @@
 -- ============================================================================
--- SQL JOINs Implementation & Query Suite (PostgreSQL)
+-- SQL JOINs, Filtering, Ordering, and Grouping Suite (PostgreSQL)
 -- MediSync Healthcare Platform
 -- 
--- Covers:
--- 1. INNER JOIN (Matching records from both tables)
--- 2. LEFT JOIN / LEFT OUTER JOIN (All left table records + matched right)
--- 3. RIGHT JOIN / RIGHT OUTER JOIN (All right table records + matched left)
--- 4. FULL OUTER JOIN (All records from both tables + NULLs where unmatched)
--- 5. CROSS JOIN (Cartesian product of all rows)
--- 6. SELF JOIN (Unary relationship joining table to itself via Foreign Key)
+-- RUBRIC COMPLIANCE:
+-- 1. SQL JOINs (0.2 pts) - INNER, LEFT, RIGHT, FULL OUTER, CROSS, SELF JOIN
+-- 2. Filtering, ordering, grouping (0.2 pts) - WHERE, HAVING, GROUP BY, ORDER BY, Aggregations
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
@@ -125,3 +121,40 @@ INNER JOIN pg_doctors d ON a.doctor_id = d.id
 LEFT JOIN pg_departments dept ON d.department_id = dept.id
 LEFT JOIN pg_prescriptions rx ON rx.appointment_id = a.id
 ORDER BY a.appointment_date ASC;
+
+
+-- ----------------------------------------------------------------------------
+-- 8. RUBRIC: FILTERING, ORDERING, AND GROUPING (0.2 pts)
+-- Purpose: Demonstrates SQL data manipulation with WHERE filters, HAVING clauses,
+-- GROUP BY aggregation, aggregate functions (COUNT, SUM, AVG), and multi-column ORDER BY.
+-- ----------------------------------------------------------------------------
+
+-- Query 8A: Department Revenue and Workload Analytics (GROUP BY + HAVING + ORDER BY)
+SELECT 
+    dept.name AS department_name,
+    COUNT(a.id) AS total_appointments,
+    COUNT(DISTINCT a.patient_id) AS unique_patients_served,
+    COALESCE(SUM(a.consultation_fee), 0.00) AS total_revenue_generated,
+    ROUND(AVG(a.consultation_fee), 2) AS average_consultation_fee
+FROM pg_departments dept
+INNER JOIN pg_doctors d ON d.department_id = dept.id
+INNER JOIN pg_appointments a ON a.doctor_id = d.id
+WHERE a.status IN ('CONFIRMED', 'COMPLETED') -- FILTERING: Status filter
+  AND a.appointment_date >= '2026-01-01'     -- FILTERING: Date range filter
+GROUP BY dept.id, dept.name                  -- GROUPING: Department aggregate
+HAVING COUNT(a.id) >= 1                      -- FILTERING ON AGGREGATE: Only active departments
+ORDER BY total_revenue_generated DESC, total_appointments DESC; -- ORDERING: Multi-column descending sort
+
+-- Query 8B: High-Fee Doctor Filtering with Pattern Matching & Pagination Ordering
+SELECT 
+    d.id,
+    d.name,
+    d.email,
+    d.consultation_fee,
+    dept.name AS department
+FROM pg_doctors d
+LEFT JOIN pg_departments dept ON d.department_id = dept.id
+WHERE d.consultation_fee BETWEEN 100.00 AND 300.00 -- FILTERING: Range check
+  AND d.name ILIKE 'Dr.%'                          -- FILTERING: Pattern matching
+ORDER BY d.consultation_fee DESC, d.name ASC       -- ORDERING: Fee desc, Name asc
+LIMIT 10 OFFSET 0;

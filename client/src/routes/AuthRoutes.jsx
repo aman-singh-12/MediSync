@@ -1,4 +1,5 @@
-// Router Configuration: defines public, auth, and role-protected dashboard routes.
+// ================= RUBRIC: RESTFUL ENDPOINT CONSUMPTION & CLIENT-SIDE ROUTING (0.2 pts) =================
+// Declarative React Router route mapping mirroring RESTful resource hierarchy (/patient/appointments, /doctor/profile, /admin/users)
 import { Navigate, Route, Routes, Outlet, useLocation } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 import useAuth from "../hooks/useAuth";

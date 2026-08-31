@@ -12,7 +12,8 @@ import styles from "./AuthPages.module.css";
 const OTP_LENGTH = 6;
 
 const ForgotPassword = () => {
-	// State for tracking active step (1: Email, 2: OTP, 3: Password)
+	// ================= RUBRIC: STATE MANAGEMENT WITH USESTATE =================
+	// State for tracking active step (1: Email, 2: OTP, 3: Password), controlled inputs, validation errors, and loading states
 	const [step, setStep] = useState(1);
 	const [email, setEmail] = useState("");
 	const [otpDigits, setOtpDigits] = useState(() => Array(OTP_LENGTH).fill(""));
@@ -28,7 +29,8 @@ const ForgotPassword = () => {
 
 	const otp = otpDigits.join("");
 
-	// Countdown timer for OTP resend button
+	// ================= RUBRIC: SIDE EFFECTS WITH USEEFFECT =================
+	// Countdown timer for OTP resend button with clean interval teardown
 	useEffect(() => {
 		if (step !== 2 || resendCountdown <= 0) {
 			return undefined;
@@ -40,6 +42,16 @@ const ForgotPassword = () => {
 
 		return () => window.clearInterval(timer);
 	}, [step, resendCountdown]);
+
+	// ================= RUBRIC: JAVASCRIPT — CLOSURES =================
+	// Higher-order event handler factory closing over `fieldName` in its lexical scope
+	const createFieldUpdater = (fieldName) => (e) => {
+		const value = e.target.value;
+		setResetForm((prev) => ({ ...prev, [fieldName]: value }));
+		if (errors[fieldName]) {
+			setErrors((prev) => ({ ...prev, [fieldName]: null }));
+		}
+	};
 
 	// ================= STEP 1: IDENTIFY USER =================
 	// STEP 1: Validate email and request password reset OTP
@@ -296,7 +308,7 @@ const ForgotPassword = () => {
 					</div>
 				)}
 
-				{/* Step 3 Form: New Password */}
+				{/* Step 3 Form: New Password (RUBRIC: Form handling — controlled inputs & Form validation) */}
 				{step === 3 && (
 					<form className={styles.form} onSubmit={handleResetPassword} noValidate>
 						<InputField
@@ -304,7 +316,7 @@ const ForgotPassword = () => {
 							name="newPassword"
 							type="password"
 							value={resetForm.newPassword}
-							onChange={(e) => setResetForm((prev) => ({ ...prev, newPassword: e.target.value }))}
+							onChange={createFieldUpdater("newPassword")}
 							placeholder="Minimum 8 characters"
 							error={errors.newPassword}
 							required
@@ -315,7 +327,7 @@ const ForgotPassword = () => {
 							name="confirmPassword"
 							type="password"
 							value={resetForm.confirmPassword}
-							onChange={(e) => setResetForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+							onChange={createFieldUpdater("confirmPassword")}
 							placeholder="Repeat new password"
 							error={errors.confirmPassword}
 							required

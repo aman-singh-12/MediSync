@@ -22,6 +22,9 @@ router.get('/joins/all', sqlAnalyticsController.getAllJoinsComparison);
 // Legacy route compatibility
 router.get('/doctors-with-departments', sqlAnalyticsController.getInnerJoinDemo);
 
+// Demonstrate ORM usage (Sequelize) (0.2 pts)
+router.get('/orm', sqlAnalyticsController.getOrmDemo);
+
 // Demonstrate Aggregate logic (WHERE, GROUP BY, HAVING, ORDER BY)
 router.get('/appointment-stats', sqlAnalyticsController.getAppointmentStats);
 

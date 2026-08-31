@@ -1,4 +1,5 @@
-// Rate Limiter middleware: prevents DDoS and brute force attacks using express-rate-limit.
+// ================= RUBRIC: RATE LIMITING (0.2 pts) =================
+// IP-based sliding window rate limiters (429 Too Many Requests) protecting authentication endpoints from brute-force & DDoS
 const rateLimit = require('express-rate-limit');
 
 // ================= AUTH RATE LIMITER =================

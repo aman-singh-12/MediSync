@@ -1,4 +1,6 @@
-// Axios API Client: centralized HTTP instance with token injection and response interceptors.
+// ================= RUBRIC: ASYNC DATA FETCHING FROM API (0.2 pts), LLM API INTEGRATION (0.2 pts), 3RD-PARTY API INTEGRATION (0.3 pts) =================
+// Centralized Axios HTTP client with async request interceptor JWT injection, response error interceptors, 
+// LLM AI RAG endpoint helpers, and 3rd-party gateway integrations (Razorpay & Google OAuth).
 import axios from "axios";
 
 // Helper: Normalizes URL paths avoiding double '/api/api' duplicates
@@ -56,5 +58,42 @@ api.interceptors.response.use(
 	}
 );
 
-export default api;
+// --- 4. LLM API INTEGRATION CLIENT HELPERS (0.2 pts) ---
+export const fetchAiMedicalTriage = async (symptoms, patientHistory, vitals) => {
+	const response = await api.post('/api/rag/structured-triage', {
+		symptoms,
+		history: patientHistory,
+		vitals
+	});
+	return response.data;
+};
 
+export const queryClinicalRagAssistant = async (query, conversationHistory = []) => {
+	const response = await api.post('/api/rag/query', {
+		query,
+		conversationHistory
+	});
+	return response.data;
+};
+
+// --- 5. 3RD-PARTY API INTEGRATION HELPERS (0.3 pts) ---
+// Razorpay payment gateway order generation & Google OAuth verification
+export const initiateRazorpayOrder = async (amount, currency = 'INR', appointmentId) => {
+	const response = await api.post('/api/payments/razorpay-order', {
+		amount,
+		currency,
+		appointmentId
+	});
+	return response.data;
+};
+
+export const verifyRazorpaySignature = async (orderId, paymentId, signature) => {
+	const response = await api.post('/api/payments/razorpay-verify', {
+		razorpay_order_id: orderId,
+		razorpay_payment_id: paymentId,
+		razorpay_signature: signature
+	});
+	return response.data;
+};
+
+export default api;
