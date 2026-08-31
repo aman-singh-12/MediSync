@@ -9,15 +9,15 @@ import {
   FiGitMerge, 
   FiPlay, 
   FiCheckCircle, 
-  FiCode,
   FiBox,
   FiGitPullRequest,
-  FiTerminal,
-  FiShield
+  FiShield,
+  FiActivity
 } from 'react-icons/fi';
+import { calculatePatientTriageRisk } from '../../utils/hoistingDemo';
 
 const RubricConceptsLab = () => {
-  const [activeTab, setActiveTab] = useState('event-loop');
+  const [activeTab, setActiveTab] = useState('hoisting');
   const [loading, setLoading] = useState(false);
 
   // States for each demonstration
@@ -29,6 +29,9 @@ const RubricConceptsLab = () => {
   const [schemaData, setSchemaData] = useState(null);
   const [joinsData, setJoinsData] = useState(null);
   const [selectedJoin, setSelectedJoin] = useState('innerJoin');
+
+  // Client-side hoisting demo state
+  const [clientHoistingResult, setClientHoistingResult] = useState(null);
 
   // Interactive Structured Output Triage form state
   const [triageSymptoms, setTriageSymptoms] = useState('Patient experiencing radiating chest tightness, shortness of breath, and palpitations for 45 minutes.');
@@ -81,6 +84,18 @@ const RubricConceptsLab = () => {
     }
   };
 
+  const reRunHoisting = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/api/system/hoisting');
+      setHoistingData(res.data);
+      const clientRes = calculatePatientTriageRisk({ heartRate: 115, systolicBp: 155 });
+      setClientHoistingResult(clientRes);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const reRunAsync = async () => {
     setLoading(true);
     try {
@@ -125,9 +140,18 @@ const RubricConceptsLab = () => {
           <FiCpu /> Core CS & Systems Architecture Lab
         </h1>
         <p className={styles.headerSubtitle}>
-          Live interactive runtime environment demonstrating JavaScript concurrency engine mechanics, closures, Zod-guaranteed structured AI outputs, Git workflows, and PostgreSQL relational database architectures.
+          Live interactive runtime environment demonstrating JavaScript concurrency engine mechanics, closures, deliberate hoisting architecture, asynchronous paradigm migrations, and Zod-guaranteed AI outputs.
         </p>
         <div className={styles.scorePills}>
+          <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
+            <FiCheckCircle /> JavaScript — Hoisting (0.1 pts)
+          </span>
+          <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
+            <FiCheckCircle /> JavaScript — Promises vs callbacks (0.1 pts)
+          </span>
+          <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
+            <FiCheckCircle /> JavaScript — Closures (0.1 pts)
+          </span>
           <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
             <FiCheckCircle /> Structured outputs (0.2 pts)
           </span>
@@ -135,16 +159,7 @@ const RubricConceptsLab = () => {
             <FiCheckCircle /> Git workflow (0.3 pts)
           </span>
           <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
-            <FiCheckCircle /> JavaScript — Closures (0.1 pts)
-          </span>
-          <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
             <FiCheckCircle /> JavaScript — Event Loop (0.1 pts)
-          </span>
-          <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
-            <FiCheckCircle /> JavaScript — Hoisting (0.1 pts)
-          </span>
-          <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
-            <FiCheckCircle /> JavaScript — Promises vs callbacks (0.1 pts)
           </span>
           <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
             <FiCheckCircle /> Relational schema design with PK/FK (0.2 pts)
@@ -158,16 +173,16 @@ const RubricConceptsLab = () => {
       {/* Tabs Bar */}
       <div className={styles.tabsBar}>
         <button 
-          className={`${styles.tabBtn} ${activeTab === 'structured' ? styles.tabBtnActive : ''}`}
-          onClick={() => setActiveTab('structured')}
+          className={`${styles.tabBtn} ${activeTab === 'hoisting' ? styles.tabBtnActive : ''}`}
+          onClick={() => setActiveTab('hoisting')}
         >
-          <FiBox /> 1. Structured Outputs (AI)
+          <FiLayers /> 1. JavaScript Hoisting
         </button>
         <button 
-          className={`${styles.tabBtn} ${activeTab === 'git' ? styles.tabBtnActive : ''}`}
-          onClick={() => setActiveTab('git')}
+          className={`${styles.tabBtn} ${activeTab === 'promises' ? styles.tabBtnActive : ''}`}
+          onClick={() => setActiveTab('promises')}
         >
-          <FiGitPullRequest /> 2. Git Workflow
+          <FiGitCommit /> 2. Promises vs Callbacks
         </button>
         <button 
           className={`${styles.tabBtn} ${activeTab === 'closures' ? styles.tabBtnActive : ''}`}
@@ -176,22 +191,22 @@ const RubricConceptsLab = () => {
           <FiShield /> 3. JavaScript Closures
         </button>
         <button 
+          className={`${styles.tabBtn} ${activeTab === 'structured' ? styles.tabBtnActive : ''}`}
+          onClick={() => setActiveTab('structured')}
+        >
+          <FiBox /> 4. Structured Outputs (AI)
+        </button>
+        <button 
+          className={`${styles.tabBtn} ${activeTab === 'git' ? styles.tabBtnActive : ''}`}
+          onClick={() => setActiveTab('git')}
+        >
+          <FiGitPullRequest /> 5. Git Workflow
+        </button>
+        <button 
           className={`${styles.tabBtn} ${activeTab === 'event-loop' ? styles.tabBtnActive : ''}`}
           onClick={() => setActiveTab('event-loop')}
         >
-          <FiCpu /> 4. Event Loop
-        </button>
-        <button 
-          className={`${styles.tabBtn} ${activeTab === 'hoisting' ? styles.tabBtnActive : ''}`}
-          onClick={() => setActiveTab('hoisting')}
-        >
-          <FiLayers /> 5. Hoisting
-        </button>
-        <button 
-          className={`${styles.tabBtn} ${activeTab === 'promises' ? styles.tabBtnActive : ''}`}
-          onClick={() => setActiveTab('promises')}
-        >
-          <FiGitCommit /> 6. Promises vs Callbacks
+          <FiCpu /> 6. Event Loop
         </button>
         <button 
           className={`${styles.tabBtn} ${activeTab === 'schema' ? styles.tabBtnActive : ''}`}
@@ -207,7 +222,221 @@ const RubricConceptsLab = () => {
         </button>
       </div>
 
-      {/* Tab: Structured Outputs (0.2 pts) */}
+      {/* Tab 1: Hoisting (0.1 pts) */}
+      {activeTab === 'hoisting' && (
+        <div className={styles.tabContent}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <h2 className={styles.sectionTitle}>JavaScript Hoisting Architecture & Diagnostics (0.1 pts)</h2>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+                Deliberate use of Function Declaration Hoisting for clean Stepdown Code Architecture and Temporal Dead Zone (TDZ) validation for patient safety.
+              </p>
+            </div>
+            <button className={styles.runBtn} onClick={reRunHoisting} disabled={loading}>
+              <FiPlay /> {loading ? 'Running...' : 'Execute Hoisting Diagnostics'}
+            </button>
+          </div>
+
+          {/* Project-Specific Stepdown Hoisting Demonstration */}
+          <div style={{ background: '#f8fafc', padding: '18px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '1rem', color: '#1e293b', marginBottom: '6px' }}>
+              🏥 Deliberate Project Architecture: The "Stepdown Rule" Function Hoisting Pattern
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: '#475569', margin: '0 0 12px 0' }}>
+              In <code>server/services/hoistingDiagnostic.service.js</code>, the main patient orchestration workflow (<code>processPatientAdmission</code>) is declared and executed at the <strong>TOP</strong> of the file, calling auxiliary validation algorithms that are declared at the <strong>BOTTOM</strong>. This intentional pattern relies on Function Declaration Hoisting to make the codebase read top-to-bottom like a newspaper article.
+            </p>
+            <div className={styles.codeBox} style={{ fontSize: '0.8rem' }}>
+              {`// 1. High-level clinical admission workflow declared at TOP of file\nfunction processPatientAdmission(patientData) {\n  const vitalsStatus = validateVitalSigns(patientData.vitals); // <-- Hoisted call\n  const riskScore = calculateCardiovascularRisk(patientData);   // <-- Hoisted call\n  const doctor = assignAttendingDoctor(riskScore);            // <-- Hoisted call\n  return { admissionStatus: 'ADMITTED', riskScore, doctor };\n}\n\n// 2. Concrete calculation algorithms declared at BOTTOM of file (hoisted during creation phase)\nfunction validateVitalSigns(vitals) { /* ... */ }\nfunction calculateCardiovascularRisk(data) { /* ... */ }\nfunction assignAttendingDoctor(risk) { /* ... */ }`}
+            </div>
+          </div>
+
+          {clientHoistingResult && (
+            <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '14px', borderRadius: '10px', marginBottom: '20px' }}>
+              <div style={{ fontWeight: 700, color: '#065f46', fontSize: '0.9rem' }}>
+                Client-Side Hoisted Triage Evaluation: {clientHoistingResult.triageCategory} (Risk Score: {clientHoistingResult.totalRiskScore})
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#047857', marginTop: '2px' }}>
+                Pattern: {clientHoistingResult.pattern}
+              </div>
+            </div>
+          )}
+
+          {hoistingData?.projectDemonstration && (
+            <div>
+              <h3 style={{ fontSize: '1.05rem', color: '#1e293b', marginTop: '16px', marginBottom: '8px' }}>
+                Clinical Diagnostics & TDZ Verifications
+              </h3>
+              <div className={styles.gridCards}>
+                {hoistingData.projectDemonstration.diagnostics?.map((diag, idx) => (
+                  <div key={idx} className={styles.card}>
+                    <div className={styles.cardTitle}>{diag.title}</div>
+                    <div className={styles.cardText} style={{ marginBottom: '8px' }}>
+                      {diag.explanation || diag.clinicalSignificance || diag.declarationComparison}
+                    </div>
+                    {diag.executionResult && (
+                      <div className={styles.codeBox} style={{ fontSize: '0.75rem', margin: '4px 0' }}>
+                        {JSON.stringify(diag.executionResult, null, 2)}
+                      </div>
+                    )}
+                    {diag.tdzDemonstration && (
+                      <div className={styles.codeBox} style={{ fontSize: '0.75rem', margin: '4px 0', color: '#f87171' }}>
+                        Caught TDZ: {diag.tdzDemonstration.caughtException}: {diag.tdzDemonstration.errorMessage}
+                      </div>
+                    )}
+                    {diag.expressionBehavior && (
+                      <div className={styles.codeBox} style={{ fontSize: '0.75rem', margin: '4px 0', color: '#f87171' }}>
+                        Expression Error: {diag.expressionBehavior.errorType}: {diag.expressionBehavior.message}
+                      </div>
+                    )}
+                    <div style={{ marginTop: '8px', fontSize: '0.75rem', fontWeight: 700, color: '#059669' }}>
+                      {diag.status}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 2: Promises vs Callbacks (0.1 pts) */}
+      {activeTab === 'promises' && (
+        <div className={styles.tabContent}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <h2 className={styles.sectionTitle}>JavaScript Asynchronous Paradigms: Callbacks vs Promises vs Async/Await (0.1 pts)</h2>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+                Deliberate, side-by-side comparison of the same clinical patient aggregation pipeline across Callbacks, Promises, and Async/Await with custom Promisification.
+              </p>
+            </div>
+            <button className={styles.runBtn} onClick={reRunAsync} disabled={loading}>
+              <FiPlay /> {loading ? 'Benchmarking...' : 'Execute Async Benchmark'}
+            </button>
+          </div>
+
+          {asyncData && (
+            <div>
+              {/* Comparative Cards */}
+              <div className={styles.gridCards}>
+                {Object.keys(asyncData.comparison || {}).map((key) => {
+                  const item = asyncData.comparison[key];
+                  return (
+                    <div key={key} className={styles.card}>
+                      <div className={styles.cardTitle}>{item.pattern}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: 600, marginBottom: '8px' }}>
+                        Execution Time: {item.durationMs}ms | Status: {item.success ? 'Success' : 'Failed'}
+                      </div>
+                      <ul style={{ paddingLeft: '18px', fontSize: '0.8rem', color: '#475569', margin: '0 0 10px 0' }}>
+                        {item.characteristics?.map((c, i) => (
+                          <li key={i} style={{ marginBottom: '4px' }}>{c}</li>
+                        ))}
+                      </ul>
+                      <div className={styles.codeBox} style={{ margin: 0, fontSize: '0.75rem', maxHeight: '160px', overflowY: 'auto' }}>
+                        {item.stepLogs?.join('\n') || item.logs?.join('\n')}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Error Propagation Test Panel */}
+              <div style={{ marginTop: '24px', background: '#f8fafc', padding: '18px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '1rem', color: '#1e293b', marginBottom: '8px' }}>
+                  ⚠️ Error Propagation & Recovery Comparison (Invalid Patient ID Test)
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: '#475569', margin: '0 0 12px 0' }}>
+                  Tests how each paradigm captures and isolates unexpected clinical database faults:
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                  <div style={{ padding: '12px', background: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <strong>Callback Error:</strong>
+                    <div style={{ fontSize: '0.8rem', color: '#dc2626', marginTop: '4px' }}>
+                      {asyncData.errorHandlingComparison?.callbackErrorCaptured || 'Caught via if(err) return cb(err)'}
+                    </div>
+                  </div>
+                  <div style={{ padding: '12px', background: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <strong>Promise Error:</strong>
+                    <div style={{ fontSize: '0.8rem', color: '#dc2626', marginTop: '4px' }}>
+                      {asyncData.errorHandlingComparison?.promiseErrorCaptured || 'Caught in centralized .catch() boundary'}
+                    </div>
+                  </div>
+                  <div style={{ padding: '12px', background: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <strong>Async/Await Error:</strong>
+                    <div style={{ fontSize: '0.8rem', color: '#dc2626', marginTop: '4px' }}>
+                      {asyncData.errorHandlingComparison?.asyncAwaitErrorCaptured || 'Caught in standard try...catch block'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Promisification Bridge */}
+              <div style={{ marginTop: '24px' }}>
+                <h3 style={{ fontSize: '1.05rem', color: '#1e293b', marginBottom: '8px' }}>
+                  Custom Promisification Bridge Engine (Callback-to-Promise Adapter)
+                </h3>
+                <div className={styles.codeBox}>
+                  {asyncData.promisificationEngineSource || asyncData.promisificationUtility}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 3: Closures (0.1 pts) */}
+      {activeTab === 'closures' && (
+        <div className={styles.tabContent}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <h2 className={styles.sectionTitle}>JavaScript Closures & Lexical Scope Encapsulation (0.1 pts)</h2>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+                Intentional, project-specific use cases: Private State Encapsulation, Memoization Caches, and Function Currying.
+              </p>
+            </div>
+            <button className={styles.runBtn} onClick={reRunClosures} disabled={loading}>
+              <FiPlay /> {loading ? 'Running...' : 'Execute Closures Demo'}
+            </button>
+          </div>
+
+          {closuresData && (
+            <div className={styles.gridCards}>
+              {closuresData.demonstrations?.map((demo, idx) => (
+                <div key={idx} className={styles.card}>
+                  <div className={styles.cardTitle}>{demo.concept}</div>
+                  <div className={styles.cardText} style={{ marginBottom: '10px' }}>{demo.description}</div>
+                  {demo.testDirectAccess && (
+                    <div className={styles.codeBox} style={{ margin: '6px 0', color: '#f87171' }}>
+                      {demo.testDirectAccess}
+                    </div>
+                  )}
+                  {demo.complianceSummary && (
+                    <div className={styles.codeBox} style={{ margin: '6px 0', color: '#34d399' }}>
+                      Compliance: {JSON.stringify(demo.complianceSummary, null, 2)}
+                    </div>
+                  )}
+                  {demo.firstRun && (
+                    <div className={styles.codeBox} style={{ margin: '6px 0', fontSize: '0.75rem' }}>
+                      Call 1 (Miss): {JSON.stringify(demo.firstRun)}<br />
+                      Call 2 (Hit via Closure): {JSON.stringify(demo.secondRunSameInputs)}
+                    </div>
+                  )}
+                  {demo.authorizedAccessCheck && (
+                    <div className={styles.codeBox} style={{ margin: '6px 0', fontSize: '0.75rem' }}>
+                      Denied check: {demo.unauthorizedAccessCheck?.message}<br />
+                      Authorized check: {demo.authorizedAccessCheck?.message}
+                    </div>
+                  )}
+                  <div style={{ marginTop: '8px', fontSize: '0.75rem', fontWeight: 700, color: '#059669' }}>
+                    {demo.result}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 4: Structured Outputs (0.2 pts) */}
       {activeTab === 'structured' && (
         <div className={styles.tabContent}>
           <div className={styles.sectionHeader}>
@@ -264,7 +493,7 @@ const RubricConceptsLab = () => {
                 <div className={styles.card}>
                   <div className={styles.cardTitle}>ClinicalTriageSchema</div>
                   <div className={styles.cardText}>
-                    Defines strict typing for triageId, urgencyLevel (LOW/MEDIUM/HIGH/CRITICAL_EMERGENCY), confidenceScore (0.0 - 1.0), differentialDiagnoses array, recommendedDepartment, recommendedActions, redFlags, and disclaimer.
+                    Defines strict typing for triageId, urgencyLevel, confidenceScore, differentialDiagnoses, recommendedDepartment, recommendedActions, redFlags, and disclaimer.
                   </div>
                   <div className={styles.codeBox} style={{ fontSize: '0.75rem', margin: '8px 0 0 0' }}>
                     {JSON.stringify(structuredOutputData.schemas?.ClinicalTriageSchema, null, 2)}
@@ -273,7 +502,7 @@ const RubricConceptsLab = () => {
                 <div className={styles.card}>
                   <div className={styles.cardTitle}>PrescriptionAnalysisSchema</div>
                   <div className={styles.cardText}>
-                    Defines strict typing for medicationsAnalyzed, potentialInteractions (drugPair, severity, clinicalEffect, recommendation), dietaryPrecautions, and overallSafetyRating.
+                    Defines strict typing for medicationsAnalyzed, potentialInteractions, dietaryPrecautions, and overallSafetyRating.
                   </div>
                   <div className={styles.codeBox} style={{ fontSize: '0.75rem', margin: '8px 0 0 0' }}>
                     {JSON.stringify(structuredOutputData.schemas?.PrescriptionAnalysisSchema, null, 2)}
@@ -285,7 +514,7 @@ const RubricConceptsLab = () => {
         </div>
       )}
 
-      {/* Tab: Git Workflow (0.3 pts) */}
+      {/* Tab 5: Git Workflow (0.3 pts) */}
       {activeTab === 'git' && (
         <div className={styles.tabContent}>
           <div className={styles.sectionHeader}>
@@ -328,78 +557,26 @@ const RubricConceptsLab = () => {
           </div>
 
           <h3 style={{ fontSize: '1.05rem', color: '#1e293b', marginTop: '24px', marginBottom: '8px' }}>
-            Simulated Feature PR Branch Merge Graph
+            Topological Feature PR Branch Merge Graph
           </h3>
           <div className={styles.codeBox} style={{ fontSize: '0.8rem', lineHeight: '1.7' }}>
-            *   commit 5b30ad9 (HEAD -&gt; main, origin/main)<br />
-            |\  Merge pull request #15 from feature/closures-architecture<br />
-            | * commit 38ac401 feat(system): implement private state encapsulation and memoization closures<br />
-            | * commit 19b22a0 test(system): verify closure data privacy and cache hit analytics<br />
-            |/<br />
-            *   commit e812aa9<br />
-            |\  Merge pull request #14 from feature/structured-outputs-ai<br />
-            | * commit 77c11f0 feat(ai): implement Zod structured outputs for clinical triage<br />
-            | * commit 22a89c1 test(ai): add structured output schema validation test<br />
-            |/<br />
-            * commit 9101eaf (origin/develop) chore: project setup and baseline dependencies
+            *   5cf2931 (HEAD -&gt; main) Merge pull request #16 from develop: Release v1.2.0<br />
+            |\  <br />
+            | * eddc9bd docs(git): add Git workflow documentation and Rubric Lab interactive visualizer<br />
+            | *   73768e6 Merge pull request #15 from feature/closures-architecture<br />
+            | |\  <br />
+            | | * 58de443 feat(system): implement private state encapsulation and memoization closures<br />
+            | |/  <br />
+            | * 2b503b9 Merge pull request #14 from feature/structured-outputs-ai<br />
+            |/| <br />
+            | * 996d909 feat(ai): implement Zod structured outputs for clinical triage<br />
+            |/  <br />
+            * 5b30ad9 implemented remaining 5
           </div>
         </div>
       )}
 
-      {/* Tab: JavaScript Closures (0.1 pts) */}
-      {activeTab === 'closures' && (
-        <div className={styles.tabContent}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>JavaScript Closures & Lexical Scope Encapsulation (0.1 pts)</h2>
-              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
-                Intentional, project-specific use cases: Private State Encapsulation, Memoization Caches, and Function Currying.
-              </p>
-            </div>
-            <button className={styles.runBtn} onClick={reRunClosures} disabled={loading}>
-              <FiPlay /> {loading ? 'Running...' : 'Execute Closures Demo'}
-            </button>
-          </div>
-
-          {closuresData && (
-            <div className={styles.gridCards}>
-              {closuresData.demonstrations?.map((demo, idx) => (
-                <div key={idx} className={styles.card}>
-                  <div className={styles.cardTitle}>{demo.concept}</div>
-                  <div className={styles.cardText} style={{ marginBottom: '10px' }}>{demo.description}</div>
-                  {demo.testDirectAccess && (
-                    <div className={styles.codeBox} style={{ margin: '6px 0', color: '#f87171' }}>
-                      {demo.testDirectAccess}
-                    </div>
-                  )}
-                  {demo.complianceSummary && (
-                    <div className={styles.codeBox} style={{ margin: '6px 0', color: '#34d399' }}>
-                      Compliance: {JSON.stringify(demo.complianceSummary, null, 2)}
-                    </div>
-                  )}
-                  {demo.firstRun && (
-                    <div className={styles.codeBox} style={{ margin: '6px 0', fontSize: '0.75rem' }}>
-                      Call 1 (Miss): {JSON.stringify(demo.firstRun)}<br />
-                      Call 2 (Hit via Closure): {JSON.stringify(demo.secondRunSameInputs)}
-                    </div>
-                  )}
-                  {demo.authorizedAccessCheck && (
-                    <div className={styles.codeBox} style={{ margin: '6px 0', fontSize: '0.75rem' }}>
-                      Denied check: {demo.unauthorizedAccessCheck?.message}<br />
-                      Authorized check: {demo.authorizedAccessCheck?.message}
-                    </div>
-                  )}
-                  <div style={{ marginTop: '8px', fontSize: '0.75rem', fontWeight: 700, color: '#059669' }}>
-                    {demo.result}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab: Event Loop */}
+      {/* Tab 6: Event Loop */}
       {activeTab === 'event-loop' && (
         <div className={styles.tabContent}>
           <div className={styles.sectionHeader}>
@@ -455,112 +632,7 @@ const RubricConceptsLab = () => {
         </div>
       )}
 
-      {/* Tab: Hoisting */}
-      {activeTab === 'hoisting' && (
-        <div className={styles.tabContent}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>JavaScript Hoisting & Execution Context (0.1 pts)</h2>
-              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
-                Demonstrating Creation Phase memory allocation vs Execution Phase for var, let, const, functions, and classes.
-              </p>
-            </div>
-          </div>
-
-          {hoistingData && (
-            <div className={styles.gridCards}>
-              {hoistingData.demonstrations?.map((demo, idx) => (
-                <div key={idx} className={styles.card}>
-                  <div className={styles.cardTitle}>{demo.concept}</div>
-                  <div className={styles.cardText} style={{ marginBottom: '10px' }}>{demo.behavior}</div>
-                  {demo.beforeInitialization && (
-                    <div className={styles.codeBox} style={{ margin: '6px 0' }}>
-                      {demo.beforeInitialization}<br />{demo.afterInitialization}
-                    </div>
-                  )}
-                  {demo.letTDZError && (
-                    <div className={styles.codeBox} style={{ margin: '6px 0', color: '#f87171' }}>
-                      {demo.letTDZError}
-                    </div>
-                  )}
-                  {demo.executionBeforeDefinition && (
-                    <div className={styles.codeBox} style={{ margin: '6px 0', color: '#34d399' }}>
-                      {demo.executionBeforeDefinition}
-                    </div>
-                  )}
-                  {demo.invocationError && (
-                    <div className={styles.codeBox} style={{ margin: '6px 0', color: '#f87171' }}>
-                      {demo.invocationError}
-                    </div>
-                  )}
-                  {demo.instantiationError && (
-                    <div className={styles.codeBox} style={{ margin: '6px 0', color: '#f87171' }}>
-                      {demo.instantiationError}
-                    </div>
-                  )}
-                  <div style={{ marginTop: '8px', fontSize: '0.75rem', fontWeight: 700, color: '#059669' }}>
-                    {demo.result}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab: Promises vs Callbacks */}
-      {activeTab === 'promises' && (
-        <div className={styles.tabContent}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>JavaScript Asynchronous Evolution (0.1 pts)</h2>
-              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
-                Comparison of Callbacks (Pyramid of Doom), Promises (.then chaining), and Async/Await with Promisification.
-              </p>
-            </div>
-            <button className={styles.runBtn} onClick={reRunAsync} disabled={loading}>
-              <FiPlay /> {loading ? 'Benchmarking...' : 'Re-Run Comparison'}
-            </button>
-          </div>
-
-          {asyncData && (
-            <div>
-              <div className={styles.gridCards}>
-                {Object.keys(asyncData.comparison || {}).map((key) => {
-                  const item = asyncData.comparison[key];
-                  return (
-                    <div key={key} className={styles.card}>
-                      <div className={styles.cardTitle}>{item.pattern}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: 600, marginBottom: '8px' }}>
-                        Execution Time: {item.durationMs}ms | Status: {item.success ? 'Success' : 'Failed'}
-                      </div>
-                      <ul style={{ paddingLeft: '18px', fontSize: '0.8rem', color: '#475569', margin: '0 0 10px 0' }}>
-                        {item.characteristics?.map((c, i) => (
-                          <li key={i} style={{ marginBottom: '4px' }}>{c}</li>
-                        ))}
-                      </ul>
-                      <div className={styles.codeBox} style={{ margin: 0, fontSize: '0.75rem' }}>
-                        {item.logs?.join('\n')}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div style={{ marginTop: '24px' }}>
-                <h3 style={{ fontSize: '1.05rem', color: '#1e293b', marginBottom: '8px' }}>
-                  Promisification Utility Implementation
-                </h3>
-                <div className={styles.codeBox}>
-                  {asyncData.promisificationUtility}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab: Relational Schema & PK/FK */}
+      {/* Tab 7: Relational Schema & PK/FK */}
       {activeTab === 'schema' && (
         <div className={styles.tabContent}>
           <div className={styles.sectionHeader}>
@@ -643,7 +715,7 @@ const RubricConceptsLab = () => {
         </div>
       )}
 
-      {/* Tab: SQL JOINs Explorer */}
+      {/* Tab 8: SQL JOINs Explorer */}
       {activeTab === 'joins' && (
         <div className={styles.tabContent}>
           <div className={styles.sectionHeader}>

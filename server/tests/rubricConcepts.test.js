@@ -15,6 +15,17 @@ const {
   generateStructuredTriage,
   generateStructuredPrescriptionAnalysis
 } = require('../ai/rag/structuredOutput.service');
+const { 
+  processPatientAdmission, 
+  runProjectHoistingDiagnostics 
+} = require('../services/hoistingDiagnostic.service');
+const { 
+  generateRecordWithCallbacks, 
+  generateRecordWithPromises, 
+  generateRecordWithAsyncAwait, 
+  promisifyClinicalFn, 
+  runAsyncComparisonBenchmark 
+} = require('../services/asyncComparison.service');
 
 describe('Full Rubric Concepts Automated Verification Test Suite', () => {
   afterAll(async () => {
@@ -41,38 +52,75 @@ describe('Full Rubric Concepts Automated Verification Test Suite', () => {
 
   // ================= 2. JAVASCRIPT — HOISTING (0.1 PTS) =================
   describe('JavaScript — Hoisting (0.1 pts)', () => {
-    it('should verify var undefined hoisting, let/const TDZ, and function hoisting', async () => {
+    it('should verify deliberate Stepdown Function Hoisting in clinical admission workflow', () => {
+      const admission = processPatientAdmission({
+        patientId: 'PAT-771',
+        name: 'John Doe',
+        age: 62,
+        systolicBp: 160,
+        isSmoker: true,
+        vitals: { heartRate: 110 }
+      });
+
+      expect(admission.admissionStatus).toBe('ADMITTED');
+      expect(admission.clinicalRisk.riskCategory).toBe('HIGH');
+      expect(admission.assignedCareTeam.department).toBe('Cardiology');
+      expect(admission.vitalsValidation.isNormal).toBe(false);
+    });
+
+    it('should verify project hoisting diagnostic suite via API', async () => {
       const res = await request(app).get('/api/system/hoisting');
       expect(res.statusCode).toEqual(200);
       expect(res.body).toHaveProperty('topic', 'JavaScript — Hoisting');
       expect(res.body).toHaveProperty('status', 'SUCCESS');
-      expect(res.body.demonstrations).toBeDefined();
-
-      const demos = res.body.demonstrations;
-      const varDemo = demos.find(d => d.concept === 'var Hoisting');
-      const tdzDemo = demos.find(d => d.concept.includes('Temporal Dead Zone'));
-      const funcDemo = demos.find(d => d.concept === 'Function Declaration Hoisting');
-
-      expect(varDemo.result).toContain('PASS');
-      expect(tdzDemo.result).toContain('PASS');
-      expect(funcDemo.result).toContain('PASS');
+      expect(res.body).toHaveProperty('projectDemonstration');
+      expect(res.body.projectDemonstration.diagnostics.length).toBe(3);
     });
   });
 
   // ================= 3. JAVASCRIPT — PROMISES VS CALLBACKS (0.1 PTS) =================
   describe('JavaScript — Promises vs Callbacks (0.1 pts)', () => {
-    it('should verify callbacks, promise chaining, async/await, and custom promisify', async () => {
+    it('should verify legacy Error-First Callback pipeline on patient record', (done) => {
+      generateRecordWithCallbacks('PAT-9021', (err, res) => {
+        expect(err).toBeNull();
+        expect(res.success).toBe(true);
+        expect(res.pattern).toContain('Callbacks');
+        expect(res.result.patient.name).toBe('Eleanor Vance');
+        expect(res.result.invoice.totalPayable).toBe(225.00);
+        done();
+      });
+    });
+
+    it('should verify modern Promise chaining pipeline on patient record', async () => {
+      const res = await generateRecordWithPromises('PAT-9021');
+      expect(res.success).toBe(true);
+      expect(res.pattern).toContain('Promises');
+      expect(res.result.patient.name).toBe('Eleanor Vance');
+      expect(res.result.invoice.totalPayable).toBe(225.00);
+    });
+
+    it('should verify modern Async/Await pipeline on patient record', async () => {
+      const res = await generateRecordWithAsyncAwait('PAT-9021');
+      expect(res.success).toBe(true);
+      expect(res.pattern).toContain('Async / Await');
+      expect(res.result.patient.name).toBe('Eleanor Vance');
+    });
+
+    it('should verify custom Promisification engine', async () => {
+      const testCbFn = (val, cb) => setTimeout(() => cb(null, val * 2), 5);
+      const testPromiseFn = promisifyClinicalFn(testCbFn);
+      const result = await testPromiseFn(21);
+      expect(result).toBe(42);
+    });
+
+    it('should verify side-by-side async comparison benchmark via API', async () => {
       const res = await request(app).get('/api/system/promises-vs-callbacks');
       expect(res.statusCode).toEqual(200);
       expect(res.body).toHaveProperty('topic', 'JavaScript — Promises vs callbacks');
       expect(res.body).toHaveProperty('status', 'SUCCESS');
-      expect(res.body.comparison).toBeDefined();
-
-      const comparison = res.body.comparison;
-      expect(comparison.callbacks.success).toBe(true);
-      expect(comparison.promises.success).toBe(true);
-      expect(comparison.asyncAwait.success).toBe(true);
-      expect(res.body.combinators.promiseAll).toBeDefined();
+      expect(res.body.comparison.callbacks.success).toBe(true);
+      expect(res.body.comparison.promises.success).toBe(true);
+      expect(res.body.comparison.asyncAwait.success).toBe(true);
     });
   });
 
@@ -81,11 +129,9 @@ describe('Full Rubric Concepts Automated Verification Test Suite', () => {
     it('should verify private state encapsulation via factory function closure', () => {
       const tracker = createPatientPrescriptionTracker('P-991', 'Metformin 500mg', 5);
       
-      // Verify private variables are NOT directly accessible from outside
       expect(tracker._dosesTaken).toBeUndefined();
       expect(tracker._doseHistory).toBeUndefined();
 
-      // Verify privileged methods mutate and read private state safely
       const log1 = tracker.logDose('Breakfast dose');
       expect(log1.success).toBe(true);
       expect(log1.record.doseNumber).toBe(1);
@@ -158,7 +204,7 @@ describe('Full Rubric Concepts Automated Verification Test Suite', () => {
     it('should reject non-conforming responses with Zod validation errors', () => {
       const invalidData = {
         urgencyLevel: 'INVALID_URGENCY_LEVEL',
-        confidenceScore: 1.5 // > 1.0 violates min/max
+        confidenceScore: 1.5
       };
       const parsed = ClinicalTriageSchema.safeParse(invalidData);
       expect(parsed.success).toBe(false);
@@ -214,7 +260,7 @@ describe('Full Rubric Concepts Automated Verification Test Suite', () => {
       expect(res.body).toHaveProperty('status', 'SUCCESS');
       expect(res.body.primaryKeys.length).toBeGreaterThan(0);
       expect(res.body.foreignKeys.length).toBeGreaterThan(0);
-      expect(res.body.normalization.length).toBe(4); // 1NF, 2NF, 3NF, BCNF
+      expect(res.body.normalization.length).toBe(4);
     });
   });
 
