@@ -1,3 +1,4 @@
+// Doctor Dashboard Page: displays daily schedule, patient count, earnings KPI cards, and pending approval gate.
 import React, { useState, useEffect } from 'react';
 import { getMyDoctorStats, getMyDoctorProfile } from '../../services/doctor.service';
 import { getDoctorAppointments } from '../../services/appointment.service';
@@ -8,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../../utils/imageUrl';
 import styles from './Dashboard.module.css';
 
+// Reusable KPI stat card component
 const StatCard = ({ title, value, badgeText, badgeClass, icon, onClick }) => (
   <div className={`${styles.statCard} ${onClick ? styles.clickable : ''}`} onClick={onClick}>
     <div className={styles.statHeader}>
@@ -34,6 +36,8 @@ const Dashboard = () => {
   const { addToast } = useToast();
   const navigate = useNavigate();
 
+  // ================= LOAD DOCTOR DASHBOARD DATA =================
+  // 1. Fetch doctor profile, KPI statistics, and booked appointments in parallel
   useEffect(() => {
     const load = async () => {
       try {
@@ -53,6 +57,8 @@ const Dashboard = () => {
     };
     load();
   }, []);
+
+
 
   if (loading) return <div>Analyzing clinical schedule...</div>;
 

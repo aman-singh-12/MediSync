@@ -1,3 +1,4 @@
+// OTP Verification Page: handles 6-digit verification code input, auto-submission, and account activation.
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
@@ -23,6 +24,7 @@ const OtpVerification = () => {
   const email = location.state?.email || localStorage.getItem(PENDING_REG_EMAIL_KEY) || "";
   const otp = otpDigits.join("");
 
+  // Countdown timer for OTP resend button
   useEffect(() => {
     if (resendCountdown <= 0) {
       return undefined;
@@ -35,6 +37,7 @@ const OtpVerification = () => {
     return () => window.clearInterval(timer);
   }, [resendCountdown]);
 
+  // Handle single character input and advance focus to next box
   const handleOtpInputChange = (index, value) => {
     const cleaned = value.replace(/\D/g, "");
     const nextDigits = [...otpDigits];
@@ -47,6 +50,7 @@ const OtpVerification = () => {
     }
   };
 
+  // Keyboard navigation between OTP boxes (backspace, arrows)
   const handleOtpKeyDown = (index, event) => {
     if (event.key === "Backspace" && !otpDigits[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
@@ -61,6 +65,7 @@ const OtpVerification = () => {
     }
   };
 
+  // Paste 6-digit OTP code handler
   const handleOtpPaste = (event) => {
     event.preventDefault();
     const pasted = event.clipboardData
@@ -83,12 +88,15 @@ const OtpVerification = () => {
     inputRefs.current[focusIndex]?.focus();
   };
 
+  // Auto-trigger verification once all 6 digits are typed
   useEffect(() => {
     if (otp.length === OTP_LENGTH && !loading) {
       handleVerify();
     }
   }, [otp, loading]);
 
+  // ================= VERIFY OTP =================
+  // 1. Submit OTP verification request to activate account & start session
   const handleVerify = async (event) => {
     if (event) event.preventDefault();
     const otpError = validateOtp(otp);
@@ -111,6 +119,7 @@ const OtpVerification = () => {
         message: "OTP verified successfully. Completing your onboarding...",
       });
 
+      // Route new patients to health survey, doctors to doctor dashboard
       const nextPath = authenticatedUser?.role === "patient" ? "/onboarding-survey" : "/dashboard";
       navigate(nextPath, { replace: true });
     } catch (requestError) {
@@ -126,6 +135,8 @@ const OtpVerification = () => {
     }
   };
 
+  // ================= RESEND OTP =================
+  // 2. Resend new OTP code
   const handleResendOtp = async () => {
     if (resendCountdown > 0) {
       return;
@@ -163,6 +174,7 @@ const OtpVerification = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className={styles.page}>
@@ -223,4 +235,4 @@ const OtpVerification = () => {
   );
 };
 
-export default OtpVerification;
+export default OtpVerification;

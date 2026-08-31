@@ -1,3 +1,4 @@
+// Login Page: email/password sign-in and Google OAuth authentication.
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from '@react-oauth/google';
@@ -9,6 +10,7 @@ import { validateLoginForm } from "../../utils/validators";
 import styles from "./AuthPages.module.css";
 
 const Login = () => {
+	// Form state for email and password
 	const [form, setForm] = useState({ email: "", password: "" });
 	const [errors, setErrors] = useState({});
 	const [alert, setAlert] = useState(null);
@@ -17,16 +19,20 @@ const Login = () => {
 	const navigate = useNavigate();
 	const { login, googleLogin, authLoading, isAuthenticated } = useAuth();
 
+	// Redirect to dashboard if already authenticated
 	useEffect(() => {
 		if (isAuthenticated) navigate("/dashboard", { replace: true });
 	}, [isAuthenticated, navigate]);
 
+	// Handle input changes and clear field errors
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setForm(prev => ({ ...prev, [name]: value }));
 		setErrors(prev => ({ ...prev, [name]: "" }));
 	};
 
+	// ================= ADMIN SHORTCUT HANDLER =================
+	// Easter egg: Triple-click logo to navigate to Admin login portal
 	const handleBrandClick = () => {
 		const now = Date.now();
 		if (now - lastClickTime > 1000) {
@@ -42,6 +48,8 @@ const Login = () => {
 		setLastClickTime(now);
 	};
 
+	// ================= SUBMIT LOGIN FORM =================
+	// 1. Submit email and password login form
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		const valErrors = validateLoginForm(form);
@@ -59,6 +67,8 @@ const Login = () => {
 		}
 	};
 
+	// ================= GOOGLE OAUTH SUCCESS =================
+	// 2. Handle Google OAuth login success
 	const handleGoogleSuccess = async (credentialResponse) => {
 		setAlert(null);
 		try {
@@ -71,8 +81,10 @@ const Login = () => {
 		}
 	};
 
+
 	return (
 		<div className={styles.page}>
+			{/* Left branding and features column */}
 			<div className={styles.landingLeft}>
 				<h1 className={styles.landingTitle}>The Future of Clinical Operations.</h1>
 				<p className={styles.landingText}>
@@ -95,6 +107,7 @@ const Login = () => {
 				</div>
 			</div>
 
+			{/* Right sign-in form card */}
 			<div className={styles.landingRight}>
 				<div className={styles.loginLayout} style={{ border: 'none', boxShadow: 'none', padding: 0 }}>
 					<div className={styles.brand} onClick={handleBrandClick} style={{ cursor: 'pointer', userSelect: 'none' }}>
@@ -150,6 +163,7 @@ const Login = () => {
 						<div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }}></div>
 					</div>
 
+					{/* Google Single Sign-On Button */}
 					<div style={{ display: 'flex', justifyContent: 'center' }}>
 						<GoogleLogin
 							onSuccess={handleGoogleSuccess}
@@ -165,3 +179,4 @@ const Login = () => {
 };
 
 export default Login;
+

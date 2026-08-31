@@ -1,3 +1,4 @@
+// Forgot Password Page: 3-step recovery flow (1. Identify User, 2. Verify OTP, 3. Reset Password).
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiMail, FiLock, FiCheckCircle, FiArrowLeft, FiShield, FiKey } from "react-icons/fi";
@@ -11,6 +12,7 @@ import styles from "./AuthPages.module.css";
 const OTP_LENGTH = 6;
 
 const ForgotPassword = () => {
+	// State for tracking active step (1: Email, 2: OTP, 3: Password)
 	const [step, setStep] = useState(1);
 	const [email, setEmail] = useState("");
 	const [otpDigits, setOtpDigits] = useState(() => Array(OTP_LENGTH).fill(""));
@@ -26,6 +28,7 @@ const ForgotPassword = () => {
 
 	const otp = otpDigits.join("");
 
+	// Countdown timer for OTP resend button
 	useEffect(() => {
 		if (step !== 2 || resendCountdown <= 0) {
 			return undefined;
@@ -38,6 +41,8 @@ const ForgotPassword = () => {
 		return () => window.clearInterval(timer);
 	}, [step, resendCountdown]);
 
+	// ================= STEP 1: IDENTIFY USER =================
+	// STEP 1: Validate email and request password reset OTP
 	const handleIdentifyUser = async (e) => {
 		e.preventDefault();
 		const emailError = validateForgotEmail(email);
@@ -73,6 +78,8 @@ const ForgotPassword = () => {
 		}
 	};
 
+	// ================= STEP 2: VERIFY OTP =================
+	// STEP 2: Verify 6-digit OTP code
 	const handleVerifyOtp = async (e) => {
 		e.preventDefault();
 		const otpError = validateOtp(otp);
@@ -106,6 +113,8 @@ const ForgotPassword = () => {
 		}
 	};
 
+	// ================= RESEND OTP =================
+	// Resend OTP code handler
 	const handleResendOtp = async () => {
 		if (resendCountdown > 0) {
 			return;
@@ -135,6 +144,8 @@ const ForgotPassword = () => {
 		}
 	};
 
+	// ================= STEP 3: RESET PASSWORD =================
+	// STEP 3: Validate and submit new password
 	const handleResetPassword = async (e) => {
 		e.preventDefault();
 		const nextErrors = validatePasswordReset(resetForm);
@@ -175,6 +186,7 @@ const ForgotPassword = () => {
 			setLoading(false);
 		}
 	};
+
 
 	const stepMeta = [
 		{ num: 1, label: "Identify", icon: <FiMail /> },
@@ -228,6 +240,7 @@ const ForgotPassword = () => {
 					</div>
 				)}
 
+				{/* Step 1 Form: Email Input */}
 				{step === 1 && (
 					<form className={styles.form} onSubmit={handleIdentifyUser} noValidate>
 						<InputField
@@ -247,6 +260,7 @@ const ForgotPassword = () => {
 					</form>
 				)}
 
+				{/* Step 2 Form: OTP Verification */}
 				{step === 2 && (
 					<div className={styles.form}>
 						<div className={styles.otpInstruction}>
@@ -282,6 +296,7 @@ const ForgotPassword = () => {
 					</div>
 				)}
 
+				{/* Step 3 Form: New Password */}
 				{step === 3 && (
 					<form className={styles.form} onSubmit={handleResetPassword} noValidate>
 						<InputField
@@ -327,3 +342,4 @@ const ForgotPassword = () => {
 };
 
 export default ForgotPassword;
+

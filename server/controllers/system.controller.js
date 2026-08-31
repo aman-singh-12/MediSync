@@ -1,10 +1,12 @@
+// System controller: pedagogical demonstrations for Node.js Event Loop and JavaScript Hoisting.
 const hoistingDemo = require('../utils/hoistingDemo');
 
-// Demonstrate Node.js Event Loop Phases
+// ================= DEMONSTRATE NODE.JS EVENT LOOP PHASES =================
+// Logic: Captures and logs the exact execution lifecycle order of Call Stack, Microtasks (process.nextTick, Promise), and Macrotasks (setTimeout, setImmediate)
 exports.getEventLoopDemo = (req, res) => {
   const executionOrder = [];
 
-  // 1. Synchronous Code (Call Stack)
+  // 1. Synchronous Code (Call Stack) - Executes immediately on call stack
   executionOrder.push('1. Synchronous code executed');
 
   // 2. Microtask Queue (process.nextTick has highest priority in microtasks)
@@ -12,26 +14,22 @@ exports.getEventLoopDemo = (req, res) => {
     executionOrder.push('3. process.nextTick callback executed');
   });
 
-  // 3. Microtask Queue (Promises execute after nextTick)
+  // 3. Microtask Queue (Promises execute after process.nextTick)
   Promise.resolve().then(() => {
     executionOrder.push('4. Promise.resolve callback executed');
   });
 
-  // 4. Timers Phase (Macrotask)
+  // 4. Timers Phase (Macrotask Queue - setTimeout)
   setTimeout(() => {
     executionOrder.push('5. setTimeout callback executed (Timers phase)');
-    
-    // Once everything finishes, send the response
-    // Wait for setImmediate to finish too, so we send response in next tick
   }, 0);
 
-  // 5. Check Phase (Macrotask)
+  // 5. Check Phase (Macrotask Queue - setImmediate)
   setImmediate(() => {
     executionOrder.push('6. setImmediate callback executed (Check phase)');
   });
 
-  // Since we want to return the full array including macrotasks to the client, 
-  // we need a slightly hacky timeout that runs AFTER the other macrotasks.
+  // 6. Deferred response timer to return aggregated sequence result
   setTimeout(() => {
     res.json({
       message: 'Event loop execution captured.',
@@ -43,8 +41,10 @@ exports.getEventLoopDemo = (req, res) => {
   executionOrder.push('2. Synchronous code finishes');
 };
 
-// Demonstrate JavaScript Hoisting
+// ================= DEMONSTRATE JAVASCRIPT HOISTING =================
+// Logic: Runs hoisting demonstration testing behavior of var, let, const, and function declarations
 exports.getHoistingDemo = (req, res) => {
   const result = hoistingDemo.runHoistingDemo();
   res.json(result);
 };
+

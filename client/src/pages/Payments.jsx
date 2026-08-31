@@ -1,3 +1,4 @@
+// Payments Page: displays transaction records, total billing stats, search filter, and detail modal.
 import styles from "./Payments.module.css";
 import { useEffect, useMemo, useState } from "react";
 import { getMyPayments } from "../services/payment.service";
@@ -6,10 +7,12 @@ import Pagination from "../components/Pagination";
 import { useToast } from "../components/ToastContext";
 import useAuth from "../hooks/useAuth";
 
+// Currency formatter for INR amounts
 const formatCurrency = (value) => {
 	return `₹${Number(value || 0).toFixed(2)}`;
 };
 
+// Date formatter for transaction timestamps
 const formatDate = (value) => {
 	if (!value) return "-";
 	const date = new Date(value);
@@ -38,6 +41,7 @@ const STATUS_CLASS = {
 };
 
 // ─── Payment Detail Modal ──────────────────────────────────────────────────────
+// Displays complete breakdown of selected payment record
 const PaymentDetailModal = ({ payment, onClose, isDoctor }) => {
 	if (!payment) return null;
 
@@ -57,6 +61,7 @@ const PaymentDetailModal = ({ payment, onClose, isDoctor }) => {
 					width: "100%", maxWidth: "520px", boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
 				}}
 			>
+
 				{/* Header */}
 				<div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" }}>
 					<div>

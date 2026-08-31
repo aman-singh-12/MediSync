@@ -1,3 +1,4 @@
+// Admin Dashboard Page: system-wide clinical operations center, revenue metrics, and practitioner verification.
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   FiUsers, 
@@ -11,6 +12,7 @@ import api from '../../services/api';
 import DashboardLayout from "../../components/DashboardLayout";
 import Button from "../../components/Button";
 import { useToast } from "../../components/ToastContext";
+
 const formatCurrency = (value) => {
   return `₹${Number(value || 0).toFixed(2)}`;
 };
@@ -23,6 +25,8 @@ const AdminDashboard = () => {
   const [error, setError] = useState(null);
   const { addToast } = useToast();
 
+  // ================= FETCH ADMIN DATA =================
+  // 1. Fetch system statistics, doctors list, and payments history
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
@@ -44,6 +48,8 @@ const AdminDashboard = () => {
     fetchAdminData();
   }, []);
 
+  // ================= REVENUE METRICS SUMMARY =================
+  // 2. Compute total platform revenue net of refunds
   const summary = useMemo(() => {
     const paidTotal = payments
       .filter((item) => item?.status === "paid")
@@ -60,6 +66,8 @@ const AdminDashboard = () => {
     };
   }, [payments]);
 
+  // ================= APPROVE DOCTOR =================
+  // 3. Approve doctor credentials to publish them on the platform
   const approveDoctor = async (id) => {
     try {
       await api.put(`/api/admin/doctors/${id}/approve`);
@@ -70,7 +78,9 @@ const AdminDashboard = () => {
     }
   };
 
+
   if (loading) return <div>Loading clinical administration...</div>;
+
 
   return (
     <>

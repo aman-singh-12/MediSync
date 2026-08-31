@@ -7,16 +7,23 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { generateOtp } = require('../utils/otp');
 const { sendOtpEmail } = require('../services/email.service');
+const { OAuth2Client } = require('google-auth-library');
 
+// Constants: OTP expiration time (5 minutes)
 const OTP_VALIDITY_MS = 5 * 60 * 1000;
 const PASSWORD_RESET_OTP_VERIFIED_VALIDITY_MS = 5 * 60 * 1000;
 
+// Google OAuth client instance
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Helper: Generate JWT token valid for 7 days
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: '7d',
   });
 };
 
+// Helper: Generate 6-digit OTP, attach expiry to record, and send via email
 const issueOtpForRecord = async (record) => {
   const otp = generateOtp();
   record.otp = otp;
@@ -26,24 +33,35 @@ const issueOtpForRecord = async (record) => {
   return sendOtpEmail(record.email, otp);
 };
 
+
+
+
+
+
 // ================= REGISTER =================
+// Logic: Validates input, checks existing user, hashes password, saves temp data in PendingUser, and sends OTP
 exports.register = async (req, res) => {
   try {
+    // 1. Extract and normalize registration form data
     let { name, fullName, email, password, role, phone, specialization, experience, consultationFee, age, gender } = req.body;
     name = name || fullName;
     email = String(email || '').trim().toLowerCase();
 
+    // 2. Validate required fields
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'All fields required' });
     }
 
+    // 3. Check if user with this email is already registered
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // 4. Hash the password for security
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // 5. Store registration details temporarily in PendingUser collection until email is verified
     const pendingUser = await PendingUser.findOneAndUpdate(
       { email },
       {
@@ -64,8 +82,10 @@ exports.register = async (req, res) => {
       }
     );
 
+    // 6. Generate and send email OTP
     const delivery = await issueOtpForRecord(pendingUser);
 
+    // 7. Send success response to prompt OTP entry on frontend
     res.status(201).json({
       message: 'Registration started. Verification code sent to your email.',
       email: pendingUser.email,
@@ -76,21 +96,32 @@ exports.register = async (req, res) => {
   }
 };
 
+
+
+
+
+
 // ================= LOGIN =================
+// Logic: Checks credentials, verifies password hash, ensures email is verified, and returns JWT token
 exports.login = async (req, res) => {
   try {
+    // 1. Extract email and password from request
     const { email, password } = req.body;
 
+    // 2. Find user by email in database
     const user = await User.findOne({ email });
 
+    // 3. Match password with bcrypt hash
     if (user && (await bcrypt.compare(password, user.password))) {
 
+      // 4. Ensure email verification was completed
       if (!user.isEmailVerified) {
         return res.status(403).json({
           message: 'Please verify your email OTP before login.',
         });
       }
 
+      // 5. Return user details and JWT authentication token
       res.json({
         _id: user._id,
         name: user.name,
@@ -101,6 +132,7 @@ exports.login = async (req, res) => {
       });
 
     } else {
+      // 6. Invalid email or password response
       res.status(401).json({ message: 'Invalid credentials' });
     }
   } catch (error) {
@@ -108,42 +140,52 @@ exports.login = async (req, res) => {
   }
 };
 
-// ================= GOOGLE LOGIN =================
-const { OAuth2Client } = require('google-auth-library');
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+
+
+
+
+
+
+
+// ================= GOOGLE LOGIN =================
+// Logic: Verifies Google ID token, finds or auto-creates user, creates Patient profile if new, returns JWT token
 exports.googleLogin = async (req, res) => {
   try {
+    // 1. Get Google credential token from frontend
     const { credential } = req.body;
     if (!credential) {
       return res.status(400).json({ message: 'Missing Google credential' });
     }
 
+    // 2. Verify token with Google Auth client
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     
+    // 3. Extract user information from Google payload
     const payload = ticket.getPayload();
     const email = payload.email;
     const name = payload.name;
     const profilePicture = payload.picture;
 
+    // 4. Check if user already exists in database
     let user = await User.findOne({ email });
 
+    // 5. If new user, create User account and default Patient profile
     if (!user) {
-      // Create new user automatically using Google details
       const randomPassword = await bcrypt.hash(Math.random().toString(36).slice(-10), 10);
       user = await User.create({
         name,
         email,
         password: randomPassword,
-        role: 'patient', // default role
+        role: 'patient', // default role for Google sign-in
         profilePicture,
-        isEmailVerified: true // automatically verified since it comes from Google
+        isEmailVerified: true // auto-verified via Google
       });
 
-      // Create Patient profile
+      // Create linked Patient profile
       await Patient.create({
         user: user._id,
         gender: '',
@@ -151,6 +193,7 @@ exports.googleLogin = async (req, res) => {
       });
     }
 
+    // 6. Return user details and JWT token
     res.json({
       _id: user._id,
       name: user.name,
@@ -166,9 +209,21 @@ exports.googleLogin = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
+
+
+
+
 // ================= SEND OTP =================
+// Logic: Dispatches OTP for registration, password reset, or profile updates based on purpose
 exports.sendOtp = async (req, res) => {
   try {
+    // 1. Extract purpose and target email
     const { purpose = 'registration' } = req.body;
     const email = String(req.body?.email || '').trim().toLowerCase();
 
@@ -176,29 +231,31 @@ exports.sendOtp = async (req, res) => {
       return res.status(400).json({ message: 'Email is required' });
     }
 
+    // 2. Handle OTP for registration flow
     if (purpose === 'registration') {
+      // Check in pending users first
       const pendingUser = await PendingUser.findOne({ email });
 
       if (pendingUser) {
         await issueOtpForRecord(pendingUser);
-
         return res.json({
           message: 'Verification code sent successfully to email.',
         });
       }
 
+      // Check unverified existing users
       const existingUnverifiedUser = await User.findOne({ email, isEmailVerified: false });
       if (!existingUnverifiedUser) {
         return res.status(404).json({ message: 'No pending registration found for this email.' });
       }
 
       await issueOtpForRecord(existingUnverifiedUser);
-
       return res.json({
         message: 'Verification code sent successfully to email.',
       });
     }
 
+    // 3. Handle OTP for password reset or profile updates
     if (purpose === 'reset-password' || purpose === 'update-profile') {
       const user = await User.findOne({ email });
 
@@ -207,7 +264,6 @@ exports.sendOtp = async (req, res) => {
       }
 
       await issueOtpForRecord(user);
-
       return res.json({
         message: 'Verification code sent successfully to email.',
       });
@@ -219,9 +275,22 @@ exports.sendOtp = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
+
+
+
+
+
 // ================= VERIFY OTP =================
+// Logic: Validates 6-digit OTP, activates user account or grants password reset authorization
 exports.verifyOtp = async (req, res) => {
   try {
+    // 1. Extract and validate OTP inputs
     const { otp, purpose = 'registration' } = req.body;
     const email = String(req.body?.email || '').trim().toLowerCase();
 
@@ -233,34 +302,41 @@ exports.verifyOtp = async (req, res) => {
       return res.status(400).json({ message: 'Invalid OTP format' });
     }
 
+    // 2. Handle OTP verification for registration
     if (purpose === 'registration') {
       const pendingUser = await PendingUser.findOne({ email });
 
       if (pendingUser) {
+        // Check if OTP was requested
         if (!pendingUser.otp || !pendingUser.otpExpiresAt) {
           return res.status(400).json({ message: 'OTP not requested. Please resend OTP.' });
         }
 
+        // Check if OTP has expired (5 mins)
         if (new Date() > pendingUser.otpExpiresAt) {
           return res.status(400).json({ message: 'OTP has expired. Please request a new OTP.' });
         }
 
+        // Rate limit: Prevent brute force after 5 failed attempts
         if (pendingUser.otpAttempts >= 5) {
           return res.status(429).json({ message: 'Too many failed attempts. Please request a new OTP.' });
         }
 
+        // Match entered OTP
         if (pendingUser.otp !== otp) {
           pendingUser.otpAttempts += 1;
           await pendingUser.save();
           return res.status(400).json({ message: 'Incorrect OTP' });
         }
 
+        // Check duplicate user edge case
         const alreadyCreatedUser = await User.findOne({ email: pendingUser.email });
         if (alreadyCreatedUser) {
           await PendingUser.deleteOne({ _id: pendingUser._id });
           return res.status(400).json({ message: 'User already exists. Please login.' });
         }
 
+        // Create permanent User record in database
         const user = await User.create({
           name: pendingUser.name,
           email: pendingUser.email,
@@ -271,7 +347,7 @@ exports.verifyOtp = async (req, res) => {
           otpExpiresAt: null,
         });
 
-        // Create Profile based on role
+        // Create role-specific profile (Doctor or Patient)
         if (user.role === 'doctor') {
           await Doctor.create({
             user: user._id,
@@ -288,8 +364,10 @@ exports.verifyOtp = async (req, res) => {
           });
         }
 
+        // Clean up pending registration record
         await PendingUser.deleteOne({ _id: pendingUser._id });
 
+        // Return user data and login token
         return res.json({
           message: 'OTP verified successfully',
           _id: user._id,
@@ -300,6 +378,7 @@ exports.verifyOtp = async (req, res) => {
         });
       }
 
+      // Handle unverified existing user fallback
       const existingUnverifiedUser = await User.findOne({ email, isEmailVerified: false });
 
       if (!existingUnverifiedUser) {
@@ -324,6 +403,7 @@ exports.verifyOtp = async (req, res) => {
         return res.status(400).json({ message: 'Incorrect OTP' });
       }
 
+      // Mark verified and clear OTP
       existingUnverifiedUser.isEmailVerified = true;
       existingUnverifiedUser.otp = null;
       existingUnverifiedUser.otpExpiresAt = null;
@@ -339,6 +419,7 @@ exports.verifyOtp = async (req, res) => {
       });
     }
 
+    // 3. Handle OTP verification for password reset
     if (purpose === 'reset-password') {
       const user = await User.findOne({ email });
 
@@ -364,6 +445,7 @@ exports.verifyOtp = async (req, res) => {
         return res.status(400).json({ message: 'Incorrect OTP' });
       }
 
+      // Authorize password reset window (valid for 5 minutes)
       user.otp = null;
       user.otpExpiresAt = null;
       user.passwordResetOtpVerifiedUntil = new Date(
@@ -382,12 +464,25 @@ exports.verifyOtp = async (req, res) => {
   }
 };
 
-// Reset password after successful OTP verification
+
+
+
+
+
+
+
+
+
+
+// ================= RESET PASSWORD =================
+// Logic: Checks verified OTP reset window, validates new password, hashes and updates password
 exports.resetPassword = async (req, res) => {
   try {
+    // 1. Extract inputs
     const { newPassword, confirmPassword } = req.body;
     const email = String(req.body?.email || '').trim().toLowerCase();
 
+    // 2. Validate inputs
     if (!email || !newPassword || !confirmPassword) {
       return res.status(400).json({ message: 'Email, new password and confirm password are required.' });
     }
@@ -400,12 +495,14 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 8 characters.' });
     }
 
+    // 3. Find user
     const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // 4. Verify that user has an active OTP-verified password reset window
     if (
       !user.passwordResetOtpVerifiedUntil ||
       new Date() > user.passwordResetOtpVerifiedUntil
@@ -415,6 +512,7 @@ exports.resetPassword = async (req, res) => {
       });
     }
 
+    // 5. Hash new password and reset verification flags
     user.password = await bcrypt.hash(newPassword, 10);
     user.passwordResetOtpVerifiedUntil = null;
     user.otp = null;
@@ -429,15 +527,27 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// Update profile with OTP verification
+
+
+
+
+
+
+
+
+
+
+// ================= UPDATE PROFILE =================
+// Logic: Verifies user OTP, updates User model and linked Doctor or Patient document
 exports.updateProfile = async (req, res) => {
   try {
+    // 1. Extract update fields and OTP
     const { fullName, phone, dateOfBirth, otp } = req.body;
     const user = await User.findById(req.user._id);
 
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Verify OTP
+    // 2. Verify OTP validity
     if (!user.otp || !user.otpExpiresAt || new Date() > user.otpExpiresAt) {
       return res.status(400).json({ message: 'OTP expired or not requested.' });
     }
@@ -445,16 +555,13 @@ exports.updateProfile = async (req, res) => {
       return res.status(400).json({ message: 'Incorrect OTP.' });
     }
 
-    // Clear OTP and update
+    // 3. Clear OTP and update User name
     user.otp = null;
     user.otpExpiresAt = null;
     if (fullName) user.name = fullName;
     await user.save();
 
-    // Update associated profile
-    const Doctor = require('../models/doctor.model');
-    const Patient = require('../models/patient.model');
-
+    // 4. Update role-specific profile (Doctor or Patient)
     if (user.role === 'doctor') {
       await Doctor.findOneAndUpdate({ user: user._id }, { phone, dateOfBirth });
     } else {
@@ -467,17 +574,31 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// Update password (protected)
+
+
+
+
+
+
+
+
+
+
+
+// ================= UPDATE PASSWORD =================
+// Logic: Checks current password, verifies OTP, hashes and saves new password
 exports.updatePassword = async (req, res) => {
   try {
+    // 1. Extract passwords and OTP
     const { currentPassword, newPassword, otp } = req.body;
     const user = await User.findById(req.user._id);
 
+    // 2. Verify current password
     if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
       return res.status(401).json({ message: 'Incorrect current password.' });
     }
 
-    // Verify OTP
+    // 3. Verify OTP validity
     if (!user.otp || !user.otpExpiresAt || new Date() > user.otpExpiresAt) {
       return res.status(400).json({ message: 'OTP expired or not requested.' });
     }
@@ -485,6 +606,7 @@ exports.updatePassword = async (req, res) => {
       return res.status(400).json({ message: 'Incorrect OTP.' });
     }
 
+    // 4. Clear OTP, hash new password and save
     user.otp = null;
     user.otpExpiresAt = null;
     user.password = await bcrypt.hash(newPassword, 10);

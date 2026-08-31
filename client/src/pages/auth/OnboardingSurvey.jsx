@@ -1,3 +1,4 @@
+// Onboarding Survey Page: collects patient health profile details (date of birth, blood group, allergies) post-registration.
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
@@ -7,6 +8,7 @@ import styles from "./OnboardingSurvey.module.css";
 
 const BLOOD_GROUPS = ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
+// Helper: get today's date formatted as YYYY-MM-DD
 const getTodayDate = () => {
 	const now = new Date();
 	const month = String(now.getMonth() + 1).padStart(2, "0");
@@ -26,6 +28,7 @@ const OnboardingSurvey = () => {
 	const [error, setError] = useState("");
 	const maxDob = getTodayDate();
 
+	// Guard: only patients can view the onboarding survey
 	useEffect(() => {
 		if (user?.role && user.role !== "patient") {
 			navigate("/home", { replace: true });
@@ -38,6 +41,7 @@ const OnboardingSurvey = () => {
 		setError("");
 	};
 
+	// Update specific allergy input item in dynamic array
 	const handleAllergyChange = (index, value) => {
 		setForm((prev) => {
 			const nextAllergies = [...prev.allergies];
@@ -47,10 +51,12 @@ const OnboardingSurvey = () => {
 		setError("");
 	};
 
+	// Add new empty allergy row
 	const addAllergyField = () => {
 		setForm((prev) => ({ ...prev, allergies: [...prev.allergies, ""] }));
 	};
 
+	// Remove allergy row by index
 	const removeAllergyField = (index) => {
 		setForm((prev) => {
 			if (prev.allergies.length === 1) {
@@ -68,6 +74,8 @@ const OnboardingSurvey = () => {
 		navigate("/home", { replace: true });
 	};
 
+	// ================= SUBMIT ONBOARDING SURVEY =================
+	// 1. Submit patient health survey to backend profile
 	const handleSubmit = async (event) => {
 		event.preventDefault();
 		setLoading(true);
@@ -82,12 +90,14 @@ const OnboardingSurvey = () => {
 
 			const allergies = form.allergies.map((item) => item.trim()).filter(Boolean);
 
+			// 2. Upsert patient profile document
 			await upsertMyPatientProfile({
 				dateOfBirth: form.dateOfBirth || undefined,
 				bloodGroup: form.bloodGroup || undefined,
 				allergies,
 			});
 
+			// 3. Navigate to dashboard
 			goToDashboard();
 		} catch (requestError) {
 			setError(
@@ -99,6 +109,7 @@ const OnboardingSurvey = () => {
 			setLoading(false);
 		}
 	};
+
 
 	return (
 		<div className={styles.page}>
@@ -119,6 +130,7 @@ const OnboardingSurvey = () => {
 				</p>
 
 				<form className={styles.form} onSubmit={handleSubmit} noValidate>
+					{/* Date of Birth Input */}
 					<div className={styles.field}>
 						<label className={styles.label} htmlFor="dateOfBirth">
 							Date of Birth
@@ -134,6 +146,7 @@ const OnboardingSurvey = () => {
 						/>
 					</div>
 
+					{/* Blood Group Selector */}
 					<div className={styles.field}>
 						<label className={styles.label} htmlFor="bloodGroup">
 							Blood Group
@@ -153,6 +166,7 @@ const OnboardingSurvey = () => {
 						</select>
 					</div>
 
+					{/* Dynamic Allergies List */}
 					<div className={styles.field}>
 						<label className={styles.label} htmlFor="allergies-0">
 							Allergies
@@ -204,3 +218,4 @@ const OnboardingSurvey = () => {
 };
 
 export default OnboardingSurvey;
+

@@ -5,6 +5,7 @@ import api from "../services/api";
 const TOKEN_KEY = "medisync_token";
 const USER_KEY = "medisync_user";
 
+// Safe localStorage helper functions with error handling
 const safeGetItem = (key) => {
 	try {
 		return localStorage.getItem(key);
@@ -17,7 +18,7 @@ const safeSetItem = (key, value) => {
 	try {
 		localStorage.setItem(key, value);
 	} catch {
-		// Ignore storage write failures to keep UI functional.
+		// Ignore storage write failures to keep UI functional
 	}
 };
 
@@ -25,10 +26,11 @@ const safeRemoveItem = (key) => {
 	try {
 		localStorage.removeItem(key);
 	} catch {
-		// Ignore storage deletion failures to keep UI functional.
+		// Ignore storage deletion failures to keep UI functional
 	}
 };
 
+// Read saved authentication token from localStorage
 const readStoredToken = () => {
 	const rawToken = safeGetItem(TOKEN_KEY);
 
@@ -39,6 +41,7 @@ const readStoredToken = () => {
 	return String(rawToken);
 };
 
+// Read saved user profile from localStorage
 const readStoredUser = () => {
 	try {
 		const rawUser = safeGetItem(USER_KEY);
@@ -48,6 +51,7 @@ const readStoredUser = () => {
 	}
 };
 
+// Normalizes token and user fields from diverse API responses
 const extractSessionFromAuthPayload = (data, fallbackUser = {}) => {
 	const nextToken =
 		data?.token || data?.accessToken || data?.data?.token || data?.data?.accessToken;
@@ -75,10 +79,14 @@ const extractSessionFromAuthPayload = (data, fallbackUser = {}) => {
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+	// ================= AUTH STATE INITIALIZATION =================
+	// 1. Initialize auth state from local storage
 	const [token, setToken] = useState(() => readStoredToken());
 	const [user, setUser] = useState(() => readStoredUser());
 	const [authLoading, setAuthLoading] = useState(false);
 
+	// ================= PERSIST SESSION =================
+	// 2. Persist session token and user profile into state and localStorage
 	const persistSession = useCallback((nextToken, nextUser) => {
 		const normalizedToken = String(nextToken || "");
 		setToken(normalizedToken);
@@ -87,6 +95,8 @@ export const AuthProvider = ({ children }) => {
 		safeSetItem(USER_KEY, JSON.stringify(nextUser));
 	}, []);
 
+	// ================= CLEAR SESSION (LOGOUT) =================
+	// 3. Clear session data upon logout
 	const clearSession = useCallback(() => {
 		setToken("");
 		setUser(null);
@@ -94,6 +104,8 @@ export const AuthProvider = ({ children }) => {
 		safeRemoveItem(USER_KEY);
 	}, []);
 
+	// ================= LOGIN HANDLER =================
+	// 4. Standard email & password login handler
 	const login = useCallback(
 		async (credentials) => {
 			setAuthLoading(true);
@@ -124,6 +136,8 @@ export const AuthProvider = ({ children }) => {
 		[persistSession]
 	);
 
+	// ================= GOOGLE LOGIN HANDLER =================
+	// 5. Google OAuth login handler
 	const googleLogin = useCallback(
 		async (credential) => {
 			setAuthLoading(true);
@@ -153,6 +167,8 @@ export const AuthProvider = ({ children }) => {
 		[persistSession]
 	);
 
+	// ================= COMPLETE AUTH SESSION =================
+	// 6. Complete session from OTP verification payload
 	const completeAuthSession = useCallback(
 		(authPayload, fallbackUser = {}) => {
 			const { nextToken, nextUser } = extractSessionFromAuthPayload(authPayload, fallbackUser);
@@ -167,10 +183,14 @@ export const AuthProvider = ({ children }) => {
 		[persistSession]
 	);
 
+	// ================= LOGOUT =================
+	// 7. Logout handler
 	const logout = useCallback(() => {
 		clearSession();
 	}, [clearSession]);
 
+	// ================= UPDATE USER STATE =================
+	// 8. Update local user profile state
 	const updateUser = useCallback((updatedData) => {
 		setUser(prev => {
 			const nextUser = { ...prev, ...updatedData };
@@ -179,6 +199,8 @@ export const AuthProvider = ({ children }) => {
 		});
 	}, []);
 
+	// ================= REFRESH USER =================
+	// 9. Fetch latest user details from server
 	const refreshUser = useCallback(async () => {
 		try {
 			const { data } = await api.get("/api/users/me");
@@ -188,6 +210,8 @@ export const AuthProvider = ({ children }) => {
 		}
 	}, [updateUser]);
 
+
+	// 10. Memoize context values
 	const contextValue = useMemo(
 		() => ({
 			token,
@@ -206,3 +230,4 @@ export const AuthProvider = ({ children }) => {
 
 	return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
+

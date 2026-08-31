@@ -1,5 +1,7 @@
+// Axios API Client: centralized HTTP instance with token injection and response interceptors.
 import axios from "axios";
 
+// Helper: Normalizes URL paths avoiding double '/api/api' duplicates
 const normalizeApiPath = (baseURL = "", url = "") => {
 	if (!url || /^https?:\/\//i.test(url)) {
 		return url;
@@ -17,6 +19,7 @@ const normalizeApiPath = (baseURL = "", url = "") => {
 	return normalizedUrl;
 };
 
+// 1. Create Axios instance with base URL and timeout
 const api = axios.create({
 	baseURL: (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, ""),
 	timeout: 30000,
@@ -25,6 +28,7 @@ const api = axios.create({
 	},
 });
 
+// 2. Request Interceptor: Automatically inject Bearer JWT token from localStorage
 api.interceptors.request.use((config) => {
 	config.url = normalizeApiPath(config.baseURL, config.url);
 
@@ -37,6 +41,7 @@ api.interceptors.request.use((config) => {
 	return config;
 });
 
+// 3. Response Interceptor: Automatically handle 401 Unauthorized errors by clearing session & redirecting to login
 api.interceptors.response.use(
 	(response) => response,
 	(error) => {
@@ -52,3 +57,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+

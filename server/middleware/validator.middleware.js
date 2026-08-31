@@ -1,6 +1,8 @@
+// Validator middleware: handles and formats validation errors from express-validator schemas.
 const { validationResult } = require('express-validator');
 
-// Generic validation error handler
+// ================= VALIDATE REQUEST MIDDLEWARE =================
+// Logic: Checks express-validator results; if validation errors exist, halts request and returns 400 with formatted error array
 const validateRequest = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -12,3 +14,4 @@ const validateRequest = (req, res, next) => {
 module.exports = {
   validateRequest
 };
+

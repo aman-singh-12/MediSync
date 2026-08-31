@@ -1,3 +1,4 @@
+// Home Dashboard: aggregated overview displaying upcoming visits, medical records, and payments.
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
@@ -9,6 +10,7 @@ import styles from "./Home.module.css";
 
 const MONTH_LABELS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN"];
 
+// Helper: Parse appointment date and time into a Date object
 const parseAppointmentDate = (appointment) => {
 	if (!appointment?.date) {
 		return null;
@@ -21,6 +23,7 @@ const parseAppointmentDate = (appointment) => {
 	return Number.isNaN(dateTime.getTime()) ? null : dateTime;
 };
 
+// Helper: Format date for UI display
 const formatDate = (value) => {
 	if (!value) return "-";
 	const date = new Date(value);
@@ -28,6 +31,7 @@ const formatDate = (value) => {
 	return date.toLocaleDateString(undefined, { month: "short", day: "2-digit" });
 };
 
+// Helper: Format appointment time
 const formatTime = (appointment) => {
 	if (appointment?.time) {
 		return appointment.time;
@@ -46,6 +50,7 @@ const Home = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 
+	// 1. Fetch dashboard data (appointments, payments, medical records) in parallel
 	useEffect(() => {
 		let isMounted = true;
 
@@ -98,6 +103,7 @@ const Home = () => {
 
 		return () => {
 			isMounted = false;
+
 		};
 	}, []);
 

@@ -1,3 +1,4 @@
+// Register Page: allows patients and doctors to create an account, then redirects to OTP verification.
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiUserCheck, FiLayout, FiClock } from "react-icons/fi";
@@ -7,6 +8,7 @@ import { registerUser } from "../../services/authService";
 import { validateRegisterForm } from "../../utils/validators";
 import styles from "./AuthPages.module.css";
 
+// Initial form state definition
 const initialForm = {
 	fullName: "",
 	email: "",
@@ -21,6 +23,7 @@ const initialForm = {
 };
 
 const Register = () => {
+	// Role selection state: 'patient' or 'doctor'
 	const [role, setRole] = useState("patient");
 	const [step, setStep] = useState(1);
 	const [form, setForm] = useState(initialForm);
@@ -30,6 +33,7 @@ const Register = () => {
 	const [agreed, setAgreed] = useState(false);
 	const navigate = useNavigate();
 
+	// Format phone numbers and update form values
 	const handleChange = (e) => {
 		let { name, value } = e.target;
 		if (name === "phone") {
@@ -39,6 +43,7 @@ const Register = () => {
 		setErrors(prev => ({ ...prev, [name]: "" }));
 	};
 
+	// Validate step 1 fields
 	const validateStep = (s) => {
 		const errs = {};
 		if (s === 1) {
@@ -63,9 +68,12 @@ const Register = () => {
 		if (Object.keys(stepErrors).length === 0) setStep(2);
 	};
 
+	// ================= SUBMIT REGISTRATION =================
+	// Submit registration details and navigate to OTP verification
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
+		// 1. Validate complete registration schema based on role
 		const validationErrors = validateRegisterForm(form, role);
 		if (!agreed) validationErrors.agree = "Required";
 		
@@ -75,7 +83,9 @@ const Register = () => {
 		setLoading(true);
 		setAlert(null);
 		try {
+			// 2. Dispatch registration request to backend
 			await registerUser({ ...form, role });
+			// 3. Redirect to OTP screen with email prefilled
 			navigate("/verify-otp", { state: { email: form.email } });
 		} catch (err) {
 			setAlert({ type: "error", message: err?.response?.data?.message || "Registration failed." });
@@ -84,8 +94,10 @@ const Register = () => {
 		}
 	};
 
+
 	return (
 		<div className={styles.page}>
+			{/* Left branding and highlight panel */}
 			<div className={styles.landingLeft} style={{ backgroundImage: "linear-gradient(rgba(6, 78, 59, 0.75), rgba(6, 78, 59, 0.75)), url('/images/register_green.png')" }}>
 				<h1 className={styles.landingTitle}>Join the Future of Clinical Care.</h1>
 				<p className={styles.landingText}>
@@ -108,6 +120,7 @@ const Register = () => {
 				</div>
 			</div>
 
+			{/* Right registration form panel */}
 			<div className={styles.landingRight}>
 				<div className={styles.registerLayout} style={{ border: 'none', boxShadow: 'none', padding: 0, maxWidth: '440px' }}>
 					<div className={styles.brand} style={{ marginBottom: '40px' }}>
@@ -120,6 +133,7 @@ const Register = () => {
 						Please fill in your credentials below to create your account.
 					</p>
 
+					{/* Role Selector: Toggle between Patient and Doctor */}
 					<div className={styles.roleSelector}>
 						{["Patient", "Doctor"].map(r => (
 							<button 
@@ -156,6 +170,7 @@ const Register = () => {
 							<InputField label="Email Address" name="email" type="email" value={form.email} onChange={handleChange} placeholder="julian@clinic.com" error={errors.email} required />
 							<InputField label="Phone Number" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="10-digit number" error={errors.phone} required />
 							
+							{/* Dynamic role fields: Patient (Age/Gender) vs Doctor (Specialization/Experience/Fee) */}
 							{role === "patient" ? (
 								<>
 									<InputField label="Age" name="age" type="number" value={form.age} onChange={handleChange} placeholder="e.g. 25" error={errors.age} required />
@@ -206,3 +221,4 @@ const Register = () => {
 };
 
 export default Register;
+

@@ -1,3 +1,4 @@
+// Settings Page: user profile management, avatar upload, and OTP-verified security/password updates.
 import { useEffect, useState } from "react";
 import useAuth from "../hooks/useAuth";
 import { useToast } from "../components/ToastContext";
@@ -26,6 +27,7 @@ const Settings = () => {
 	const [otp, setOtp] = useState("");
 	const [otpContext, setOtpContext] = useState("");
 
+	// Populate form with current authenticated user attributes
 	useEffect(() => {
 		if (user) {
 			setForm(prev => ({
@@ -46,6 +48,7 @@ const Settings = () => {
 		setForm({ ...form, [name]: value });
 	};
 
+	// 1. Request OTP verification code before profile modification
 	const handleRequestUpdate = async (e) => {
 		e.preventDefault();
 		setLoading(true);
@@ -61,6 +64,7 @@ const Settings = () => {
 		}
 	};
 
+	// 2. Verify OTP code and save updated profile or password
 	const handleVerifyAndSave = async () => {
 		setLoading(true);
 		try {
@@ -85,6 +89,7 @@ const Settings = () => {
 		}
 	};
 
+	// 3. Upload new profile avatar image to Cloudinary
 	const handleImageUpload = async (e) => {
 		const file = e.target.files[0];
 		if (!file) return;
@@ -106,6 +111,7 @@ const Settings = () => {
 	};
 
 	const handlePasswordUpdate = async (e) => {
+
 		e.preventDefault();
 		if (form.newPassword !== form.confirmPassword) {
 			addToast("Passwords do not match.", "error");

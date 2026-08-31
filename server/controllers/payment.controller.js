@@ -1,22 +1,27 @@
+// Payment controller: payment tracking, transaction history, and Razorpay gateway integration.
 const Payment = require('../models/payment.model');
 const Appointment = require('../models/appointment.model');
+const Patient = require('../models/patient.model');
+const Doctor = require('../models/doctor.model');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
-// Initialize Razorpay instance.
+// Initialize Razorpay SDK instance with environment credentials
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || 'dummy_key_id',
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_key_secret',
 });
 
-// Helper to generate a unique reference ID
+// Helper: Generates random transaction reference string (e.g., PAY-ABC123XYZ)
 const generateReferenceId = () => {
   return 'PAY-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 };
 
-// Create a payment record
+// ================= CREATE PAYMENT =================
+// Logic: Validates transaction amount, links payment to appointment details, and creates Payment record
 const createPayment = async (req, res) => {
   try {
+    // 1. Extract payment parameters
     const { 
       amount, 
       currency = 'INR', 
@@ -30,10 +35,12 @@ const createPayment = async (req, res) => {
       notes
     } = req.body;
 
+    // 2. Validate amount
     if (amount === undefined || amount === null || Number(amount) <= 0) {
       return res.status(400).json({ message: 'A valid amount is required' });
     }
 
+    // 3. Build base payment payload
     const payload = {
       user: req.user._id,
       patient: patient || req.user._id,
@@ -47,6 +54,7 @@ const createPayment = async (req, res) => {
       paidAt: status === 'paid' ? new Date() : null,
     };
 
+    // 4. Attach appointment and doctor metadata if linked
     if (appointmentId) {
       const appointment = await Appointment.findById(appointmentId).populate({ path: 'doctor', populate: { path: 'user', select: 'name' } });
 
@@ -54,7 +62,7 @@ const createPayment = async (req, res) => {
         return res.status(404).json({ message: 'Appointment not found' });
       }
 
-      // Check if the user is the patient of the appointment or an admin
+      // Check if user is the patient on the appointment or an admin
       if (String(appointment.patient) !== String(req.user._id) && req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Cannot create payment for this appointment' });
       }
@@ -68,6 +76,7 @@ const createPayment = async (req, res) => {
       payload.specialty = specialty || '';
     }
 
+    // 5. Save payment document
     const payment = await Payment.create(payload);
     return res.status(201).json(payment);
   } catch (error) {
@@ -75,26 +84,24 @@ const createPayment = async (req, res) => {
   }
 };
 
-// Get payments for the authenticated user / patient
+// ================= GET MY PAYMENTS =================
+// Logic: Queries transaction history tailored to the user's role (patient expenses, doctor earnings, or admin overview)
 const getMyPayments = async (req, res) => {
   try {
-    const Patient = require('../models/patient.model');
-    const Doctor = require('../models/doctor.model');
-    const Appointment = require('../models/appointment.model');
-
     let query = {};
 
+    // 1. Build role-based database query filter
     if (req.user.role === 'patient') {
       const patientProfile = await Patient.findOne({ user: req.user._id });
       if (patientProfile) {
         query = { patient: patientProfile._id };
       } else {
-        query = { user: req.user._id }; // Fallback
+        query = { user: req.user._id };
       }
     } else if (req.user.role === 'doctor') {
       const doctorProfile = await Doctor.findOne({ user: req.user._id });
       if (doctorProfile) {
-        // Include payments directly linked to doctor OR linked via appointments
+        // Query payments linked directly to doctor or via doctor's appointments
         const doctorAppointments = await Appointment.find({ doctor: doctorProfile._id }).distinct('_id');
         query = { 
           $or: [
@@ -104,9 +111,10 @@ const getMyPayments = async (req, res) => {
         };
       }
     } else if (req.user.role === 'admin') {
-      query = {}; // Admin sees all if using this endpoint
+      query = {}; // Admin has access to all transactions
     }
 
+    // 2. Fetch payments with populated relation references
     const payments = await Payment.find(query)
       .populate({
         path: 'patient',
@@ -124,7 +132,7 @@ const getMyPayments = async (req, res) => {
       .limit(100)
       .lean();
 
-    // Map to ensure doctorName is populated from relations if missing in field
+    // 3. Format response with safe fallback values
     const formattedPayments = payments.map(p => ({
       ...p,
       doctorName: p.doctorName || p.doctor?.user?.name || p.appointment?.doctor?.user?.name || 'MediSync Practitioner',
@@ -142,16 +150,21 @@ const getMyPayments = async (req, res) => {
   }
 };
 
+// ================= CREATE RAZORPAY ORDER =================
+// Logic: Generates a new order on Razorpay servers with amount in lowest currency denomination (paise)
 const createRazorpayOrder = async (req, res) => {
   try {
+    // 1. Extract amount and receipt identifier
     const { amount, currency = 'INR', receipt } = req.body;
     
+    // 2. Format options (Razorpay expects amount in paise, e.g., 500 INR = 50000)
     const options = {
-      amount: parseInt(amount * 100), // amount in smallest currency unit
+      amount: parseInt(amount * 100),
       currency,
       receipt: receipt || `receipt_${Date.now()}`,
     };
 
+    // 3. Create order via Razorpay SDK
     const order = await razorpay.orders.create(options);
     
     if (!order) {
@@ -165,10 +178,14 @@ const createRazorpayOrder = async (req, res) => {
   }
 };
 
+// ================= VERIFY RAZORPAY PAYMENT =================
+// Logic: Computes cryptographic HMAC signature using secret key to verify payment authenticity from Razorpay checkout
 const verifyRazorpayPayment = async (req, res) => {
   try {
+    // 1. Extract gateway callback parameters
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
+    // 2. Generate expected signature using SHA256 HMAC
     const sign = razorpay_order_id + '|' + razorpay_payment_id;
     
     const expectedSign = crypto
@@ -176,6 +193,7 @@ const verifyRazorpayPayment = async (req, res) => {
       .update(sign.toString())
       .digest('hex');
 
+    // 3. Check signature match
     if (razorpay_signature === expectedSign) {
       return res.json({ success: true, message: 'Payment verified successfully' });
     } else {
@@ -193,3 +211,4 @@ module.exports = {
   createRazorpayOrder,
   verifyRazorpayPayment,
 };
+

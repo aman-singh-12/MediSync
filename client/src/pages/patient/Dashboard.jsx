@@ -1,3 +1,4 @@
+// Patient Dashboard Page: clinical summary, upcoming appointments, health spent metrics, and prescriptions.
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getPatientDashboard } from '../../services/patient.service';
@@ -18,6 +19,8 @@ const PatientDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ================= FETCH PATIENT DASHBOARD =================
+  // 1. Fetch patient aggregated dashboard data from backend
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -34,12 +37,16 @@ const PatientDashboard = () => {
 
   if (loading) return <div className={styles.loader}>Analyzing medical records...</div>;
 
+  // ================= KPI STATS CALCULATION =================
+  // 2. Compute KPI stat cards for display
   const statCards = [
     { title: 'Total Visits', value: data?.appointmentStats?.total || 0, icon: <FiCalendar />, type: 'default' },
     { title: 'Upcoming', value: data?.appointmentStats?.upcoming || 0, icon: <FiClock />, type: 'default' },
     { title: 'Records', value: data?.recordsCount || 0, icon: <FiFileText />, type: 'default' },
     { title: 'Health Spent', value: `₹${data?.totalSpent || 0}`, icon: <FiCreditCard />, type: 'gold' },
   ];
+
+
 
   return (
     <div className={styles.container}>

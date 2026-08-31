@@ -1,18 +1,22 @@
+// SQL Analytics controller: PostgreSQL relational queries and Sequelize ORM demonstrations.
 const db = require('../config/pg.db');
 const { sequelize, Department, Doctor, Appointment } = require('../sql/models');
 const { Op } = require('sequelize');
 
-// Execute SQL Schema Initialization
+// ================= INITIALIZE SQL SCHEMA =================
+// Logic: Executes SQL schema DDL file and synchronizes Sequelize relational models with PostgreSQL
 exports.initSchema = async (req, res) => {
   try {
     const fs = require('fs');
     const path = require('path');
+    
+    // 1. Read raw schema SQL file
     const schemaSql = fs.readFileSync(path.join(__dirname, '../sql/schema.sql'), 'utf8');
     
-    // First, try running raw SQL as before
+    // 2. Execute raw SQL DDL queries in PostgreSQL
     await db.query(schemaSql);
     
-    // Now, synchronize Sequelize models (ORM) to prove ORM usage
+    // 3. Synchronize Sequelize ORM models to create/update tables
     if (sequelize && process.env.PG_URI) {
       await sequelize.sync();
     }
@@ -23,16 +27,17 @@ exports.initSchema = async (req, res) => {
   }
 };
 
-// DEMONSTRATE: SQL JOINs using ORM
+// ================= GET DOCTORS WITH DEPARTMENTS (SQL INNER JOIN) =================
+// Logic: Demonstrates relational SQL INNER JOIN querying between Doctors and Departments using Sequelize ORM
 exports.getDoctorsWithDepartments = async (req, res) => {
   try {
-    // Proving ORM usage to perform an INNER JOIN
     if (!process.env.PG_URI) throw new Error('Database not configured');
 
+    // 1. Execute ORM query with INNER JOIN (required: true)
     const doctors = await Doctor.findAll({
       include: [{
         model: Department,
-        required: true // required: true forces an INNER JOIN
+        required: true // Forces INNER JOIN in PostgreSQL
       }],
       order: [['name', 'ASC']]
     });
@@ -43,12 +48,13 @@ exports.getDoctorsWithDepartments = async (req, res) => {
   }
 };
 
-// DEMONSTRATE: Filtering, Ordering, Grouping (SQL Postgres) using ORM
+// ================= GET APPOINTMENT STATS (AGGREGATION & GROUP BY) =================
+// Logic: Demonstrates advanced SQL analytics (WHERE, GROUP BY, HAVING, ORDER BY) using Sequelize ORM
 exports.getAppointmentStats = async (req, res) => {
   try {
     if (!process.env.PG_URI) throw new Error('Database not configured');
 
-    // Aggregate query showing WHERE, GROUP BY, HAVING, and ORDER BY using ORM
+    // 1. Execute aggregation with COUNT, GROUP BY doctor name, HAVING filter, and DESC sort
     const stats = await Appointment.findAll({
       attributes: [
         [sequelize.col('pg_doctor.name'), 'doctor_name'],
@@ -59,15 +65,15 @@ exports.getAppointmentStats = async (req, res) => {
         attributes: []
       }],
       where: {
-        status: 'completed' // FILTERING (WHERE)
+        status: 'completed' // WHERE filter
       },
-      group: ['pg_doctor.name'], // GROUPING
+      group: ['pg_doctor.name'], // GROUP BY clause
       having: sequelize.where(
         sequelize.fn('COUNT', sequelize.col('pg_appointment.id')),
-        { [Op.gt]: 0 } // FILTERING AGGREGATES (HAVING > 0)
+        { [Op.gt]: 0 } // HAVING count > 0 clause
       ),
       order: [
-        [sequelize.literal('total_appointments'), 'DESC'] // ORDERING
+        [sequelize.literal('total_appointments'), 'DESC'] // ORDER BY clause
       ]
     });
     
@@ -76,3 +82,4 @@ exports.getAppointmentStats = async (req, res) => {
     res.status(500).json({ error: error.message, message: 'Failed to execute ORM aggregation query.' });
   }
 };
+

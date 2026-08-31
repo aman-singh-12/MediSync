@@ -6,6 +6,7 @@ const Patient = require('../models/patient.model');
 const validators = require('../utils/validators');
 const { createNotification } = require('../services/notification.service');
 
+// Helper: Sanitizes pagination parameters (page, limit, skip)
 const defaultSanitizePagination = (query = {}, defaults = { page: 1, limit: 10 }) => {
 	const fallbackPage = Number(defaults.page) > 0 ? Number(defaults.page) : 1;
 	const fallbackLimit = Number(defaults.limit) > 0 ? Number(defaults.limit) : 10;
@@ -30,6 +31,7 @@ const sanitizePagination =
 		? validators.sanitizePagination
 		: defaultSanitizePagination;
 
+// Helper: Normalizes MongoDB ObjectId to string
 const normalizeId = (value) => {
 	if (!value) return null;
 	if (typeof value === 'string') return value;
@@ -37,11 +39,13 @@ const normalizeId = (value) => {
 	return String(value);
 };
 
+// Helper: Inspects model reference schema path
 const getAppointmentRef = (pathName) => {
 	const schemaPath = Appointment.schema.path(pathName);
 	return schemaPath?.options?.ref;
 };
 
+// Helper: Formats appointment date string for notification messages
 const getAppointmentDisplayDate = (appointment) => {
 	if (appointment?.scheduledAt) {
 		const date = new Date(appointment.scheduledAt);
@@ -61,6 +65,7 @@ const getAppointmentDisplayDate = (appointment) => {
 	return 'the selected date';
 };
 
+// Helper: Finds or creates a Patient document for a user
 const getOrCreatePatientFromUser = async (userId) => {
 	let patient = await Patient.findOne({ user: userId });
 	if (!patient) {
@@ -69,8 +74,11 @@ const getOrCreatePatientFromUser = async (userId) => {
 	return patient;
 };
 
+// ================= CREATE MEDICAL RECORD =================
+// Logic: Validates doctor ownership, ensures completed appointment status, creates record, and notifies patient
 const createMedicalRecord = async (req, res) => {
 	try {
+		// 1. Extract clinical details
 		const {
 			appointmentId,
 			title,
@@ -82,15 +90,18 @@ const createMedicalRecord = async (req, res) => {
 			attachments,
 		} = req.body;
 
+		// 2. Validate mandatory fields
 		if (!appointmentId || !title) {
 			return res.status(400).json({ message: 'appointmentId and title are required' });
 		}
 
+		// 3. Find doctor profile
 		const doctor = await Doctor.findOne({ user: req.user._id });
 		if (!doctor) {
 			return res.status(404).json({ message: 'Doctor profile not found' });
 		}
 
+		// 4. Fetch appointment and verify ownership
 		const patientRef = getAppointmentRef('patient');
 		const doctorRef = getAppointmentRef('doctor');
 
@@ -131,6 +142,7 @@ const createMedicalRecord = async (req, res) => {
 				.json({ message: 'You can only create records for your own appointments' });
 		}
 
+		// 5. Ensure medical record is linked to a completed appointment
 		const statusEnum = Appointment.schema.path('status')?.enumValues || [];
 		const supportsCompleted = statusEnum.includes('completed');
 
@@ -146,6 +158,7 @@ const createMedicalRecord = async (req, res) => {
 			});
 		}
 
+		// 6. Resolve patient profile
 		let patientProfile;
 		let patientUserId;
 
@@ -164,6 +177,7 @@ const createMedicalRecord = async (req, res) => {
 			return res.status(404).json({ message: 'Patient profile not found' });
 		}
 
+		// 7. Save new MedicalRecord document
 		const record = await MedicalRecord.create({
 			patient: patientProfile._id,
 			doctor: doctor._id,
@@ -177,6 +191,7 @@ const createMedicalRecord = async (req, res) => {
 			attachments: Array.isArray(attachments) ? attachments : [],
 		});
 
+		// 8. Send notification to patient
 		await createNotification({
 			recipient: patientUserId,
 			title: 'New Medical Record',
@@ -196,13 +211,17 @@ const createMedicalRecord = async (req, res) => {
 	}
 };
 
+// ================= GET MY MEDICAL RECORDS (PATIENT) =================
+// Logic: Retrieves paginated medical records for authenticated patient with optional keyword search
 const getMyMedicalRecords = async (req, res) => {
 	try {
+		// 1. Get patient profile
 		const patient = await Patient.findOne({ user: req.user._id });
 		if (!patient) {
 			return res.status(404).json({ message: 'Patient profile not found' });
 		}
 
+		// 2. Parse pagination and search filter
 		const { page, limit, skip } = sanitizePagination(req.query, { page: 1, limit: 10 });
 		const { search } = req.query;
 
@@ -214,6 +233,7 @@ const getMyMedicalRecords = async (req, res) => {
 			];
 		}
 
+		// 3. Query paginated records
 		const [records, total] = await Promise.all([
 			MedicalRecord.find(filter)
 				.sort({ createdAt: -1 })
@@ -230,13 +250,17 @@ const getMyMedicalRecords = async (req, res) => {
 	}
 };
 
+// ================= GET DOCTOR PATIENT RECORDS =================
+// Logic: Retrieves medical records authored by doctor, with optional patientId and search filter
 const getDoctorPatientRecords = async (req, res) => {
 	try {
+		// 1. Get doctor profile
 		const doctor = await Doctor.findOne({ user: req.user._id });
 		if (!doctor) {
 			return res.status(404).json({ message: 'Doctor profile not found' });
 		}
 
+		// 2. Parse pagination and filters
 		const { page, limit, skip } = sanitizePagination(req.query, { page: 1, limit: 10 });
 		const { patientId, search } = req.query;
 
@@ -249,6 +273,7 @@ const getDoctorPatientRecords = async (req, res) => {
 			];
 		}
 
+		// 3. Query records
 		const [records, total] = await Promise.all([
 			MedicalRecord.find(filter)
 				.sort({ createdAt: -1 })
@@ -265,13 +290,17 @@ const getDoctorPatientRecords = async (req, res) => {
 	}
 };
 
+// ================= UPDATE MEDICAL RECORD =================
+// Logic: Verifies doctor ownership, updates clinical fields, and notifies patient of changes
 const updateMedicalRecord = async (req, res) => {
 	try {
+		// 1. Find doctor profile
 		const doctor = await Doctor.findOne({ user: req.user._id });
 		if (!doctor) {
 			return res.status(404).json({ message: 'Doctor profile not found' });
 		}
 
+		// 2. Find record and verify doctor ownership
 		const record = await MedicalRecord.findById(req.params.id).populate({
 			path: 'patient',
 			populate: { path: 'user', select: '_id' },
@@ -285,6 +314,7 @@ const updateMedicalRecord = async (req, res) => {
 			return res.status(403).json({ message: 'You can update only your own medical records' });
 		}
 
+		// 3. Update permitted clinical fields
 		const allowedFields = [
 			'title',
 			'diagnosis',
@@ -303,6 +333,7 @@ const updateMedicalRecord = async (req, res) => {
 
 		await record.save();
 
+		// 4. Notify patient
 		await createNotification({
 			recipient: record.patient?.user?._id,
 			title: 'Medical Record Updated',
@@ -317,13 +348,17 @@ const updateMedicalRecord = async (req, res) => {
 	}
 };
 
+// ================= DELETE MEDICAL RECORD =================
+// Logic: Verifies doctor ownership or admin rights, then deletes record
 const deleteMedicalRecord = async (req, res) => {
 	try {
+		// 1. Find record
 		const record = await MedicalRecord.findById(req.params.id);
 		if (!record) {
 			return res.status(404).json({ message: 'Medical record not found' });
 		}
 
+		// 2. Check authorization
 		if (req.user.role === 'doctor') {
 			const doctor = await Doctor.findOne({ user: req.user._id });
 			if (!doctor || record.doctor.toString() !== doctor._id.toString()) {
@@ -331,6 +366,7 @@ const deleteMedicalRecord = async (req, res) => {
 			}
 		}
 
+		// 3. Remove record
 		await record.deleteOne();
 		return res.status(200).json({ message: 'Medical record deleted' });
 	} catch (error) {
@@ -338,8 +374,11 @@ const deleteMedicalRecord = async (req, res) => {
 	}
 };
 
+// ================= PATIENT UPLOAD RECORD =================
+// Logic: Handles direct patient file upload (Cloudinary attachment), initializes patient profile if missing, and saves record
 const patientUploadRecord = async (req, res) => {
 	try {
+		// 1. Validate file upload and title
 		if (!req.file) {
 			return res.status(400).json({ message: 'No file uploaded' });
 		}
@@ -349,7 +388,7 @@ const patientUploadRecord = async (req, res) => {
 			return res.status(400).json({ message: 'Title is required for the record' });
 		}
 
-		// Find or create patient profile to store correct patient ID
+		// 2. Find or initialize patient profile
 		const patient = await Patient.findOneAndUpdate(
 			{ user: req.user._id },
 			{ $setOnInsert: { user: req.user._id } },
@@ -360,8 +399,9 @@ const patientUploadRecord = async (req, res) => {
 			return res.status(404).json({ message: 'Patient profile could not be initialized' });
 		}
 
-		const filePath = req.file.path; // Cloudinary URL
+		const filePath = req.file.path; // Cloudinary secure URL
 		
+		// 3. Create medical record with attachment
 		const record = await MedicalRecord.create({
 			patient: patient._id,
 			title,
@@ -386,3 +426,4 @@ module.exports = {
 	deleteMedicalRecord,
 	patientUploadRecord,
 };
+

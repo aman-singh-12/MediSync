@@ -1,7 +1,9 @@
-// Upload middleware: multer config to accept image uploads and save to `uploads/`.
+// Upload middleware: Multer storage configuration and file validation for image uploads.
 const multer = require('multer');
 const path = require('path');
 
+// ================= DISK STORAGE CONFIGURATION =================
+// Logic: Configures disk destination folder and generates unique filename with user ID and timestamp
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/');
@@ -11,6 +13,8 @@ const storage = multer.diskStorage({
   }
 });
 
+// ================= FILE TYPE FILTER =================
+// Logic: Validates MIME type and extension, allowing only JPEG, JPG, and PNG images
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -23,10 +27,13 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// ================= MULTER INSTANCE =================
+// Configures 5MB file size limit and applies storage engine
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: fileFilter
 });
 
 module.exports = upload;
+

@@ -8,11 +8,18 @@ const { createNotification } = require('../services/notification.service');
 const { emitToUser } = require('../config/socket');
 const crypto = require('crypto');
 
-// Book appointment (patient)
+
+
+
+
+// ================= BOOK APPOINTMENT =================
+// Logic: Validates slot availability, prevents double-booking, creates appointment, deducts payment/wallet, and sends notification to doctor
 exports.bookAppointment = async (req, res) => {
   try {
+    // 1. Extract booking request parameters
     const { doctorId, date, time, reason, paymentMode } = req.body;
 
+    // 2. Validate mandatory inputs
     if (!date || !time) {
       return res.status(400).json({ message: 'Date and time are required' });
     }
@@ -21,24 +28,13 @@ exports.bookAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Please select a doctor' });
     }
 
-    // Get the patient profile for the current user
+    // 3. Get the patient profile for the authenticated user
     const patientProfile = await Patient.findOne({ user: req.user._id });
     if (!patientProfile) {
       return res.status(404).json({ message: 'Patient profile not found. Please complete your profile.' });
     }
 
-    // Check for slot conflict
-    const exists = await Appointment.findOne({
-      doctor: doctorId,
-      date,
-      time,
-      status: { $nin: ['cancelled'] },
-    });
-
-    if (exists) {
-      return res.status(400).json({ message: 'This slot is already booked. Please choose a different time.' });
-    }
-
+    // 4. Retrieve doctor profile and consultation fee
     const doctorProfile = await Doctor.findById(doctorId);
     if (!doctorProfile) {
       return res.status(404).json({ message: 'Doctor not found' });
@@ -46,7 +42,7 @@ exports.bookAppointment = async (req, res) => {
 
     const consultationFee = doctorProfile.consultationFee || 0;
 
-    // Check availability in doctor's slots
+    // 5. Verify doctor's available working slots for this weekday
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const bookingDate = new Date(date);
     const dayOfWeek = days[bookingDate.getDay()];
@@ -61,7 +57,7 @@ exports.bookAppointment = async (req, res) => {
       return res.status(400).json({ message: `Doctor is not available on ${dayOfWeek} at ${time}. Please check their available slots.` });
     }
 
-    // Check if slot is already taken
+    // 6. Check for slot conflict / existing booking
     const alreadyBooked = await Appointment.findOne({
       doctor: doctorId,
       date,
@@ -73,6 +69,7 @@ exports.bookAppointment = async (req, res) => {
       return res.status(400).json({ message: 'This time slot is already booked. Please choose another time.' });
     }
 
+    // 7. Create appointment record
     const appointment = await Appointment.create({
       patient: patientProfile._id,
       doctor: doctorId,
@@ -83,20 +80,21 @@ exports.bookAppointment = async (req, res) => {
       paymentMode: paymentMode || 'prepaid',
     });
 
-    // Create a transaction record if prepaid or wallet
+    // 8. Process payment: deduct wallet balance or log prepaid transaction
     if (paymentMode === 'prepaid' || paymentMode === 'wallet') {
       if (paymentMode === 'wallet') {
         const user = await User.findById(req.user._id);
         if (user.walletBalance < consultationFee) {
-          // If wallet balance is insufficient, delete the appointment and throw error
+          // If wallet balance is insufficient, roll back appointment creation
           await Appointment.findByIdAndDelete(appointment._id);
           return res.status(400).json({ message: 'Insufficient wallet balance' });
         }
-        // Deduct from wallet
+        // Deduct fee from wallet
         user.walletBalance -= consultationFee;
         await user.save();
       }
 
+      // Record transaction
       await Payment.create({
         patient: patientProfile._id,
         doctor: doctorId,
@@ -112,6 +110,7 @@ exports.bookAppointment = async (req, res) => {
       });
     }
 
+    // 9. Populate relations for response
     const populated = await Appointment.findById(appointment._id)
       .populate({
         path: 'doctor',
@@ -122,7 +121,7 @@ exports.bookAppointment = async (req, res) => {
         populate: { path: 'user', select: 'name email' },
       });
 
-    // Notify doctor
+    // 10. Send notification and real-time socket alert to doctor
     if (doctorProfile && doctorProfile.user) {
       await createNotification({
         recipient: doctorProfile.user,
@@ -144,20 +143,32 @@ exports.bookAppointment = async (req, res) => {
   }
 };
 
-// Get my appointments (patient)
+
+
+
+
+
+
+
+
+// ================= GET MY APPOINTMENTS =================
+// Logic: Retrieves paginated appointments and calculates status breakdown (upcoming, completed, cancelled) for logged-in patient
 exports.getMyAppointments = async (req, res) => {
   try {
+    // 1. Get patient profile
     const patientProfile = await Patient.findOne({ user: req.user._id });
     if (!patientProfile) {
       return res.json([]);
     }
 
+    // 2. Parse pagination query
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     const query = { patient: patientProfile._id };
     
+    // 3. Fetch appointments and aggregate appointment statistics concurrently
     const [appointments, total, statsAgg] = await Promise.all([
       Appointment.find(query)
         .populate({
@@ -194,15 +205,27 @@ exports.getMyAppointments = async (req, res) => {
   }
 };
 
-// Cancel appointment (patient or admin)
+
+
+
+
+
+
+
+
+
+// ================= CANCEL APPOINTMENT =================
+// Logic: Verifies ownership, marks appointment cancelled, triggers wallet refund for prepaid bookings, and sends notification
 exports.cancelAppointment = async (req, res) => {
   try {
+    // 1. Find appointment
     const appointment = await Appointment.findById(req.params.id);
 
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
+    // 2. Validate current status
     if (appointment.status === 'cancelled') {
       return res.status(400).json({ message: 'Appointment is already cancelled' });
     }
@@ -211,7 +234,7 @@ exports.cancelAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Cannot cancel a completed appointment' });
     }
 
-    // Identify roles and profiles
+    // 3. Verify user authorization (patient owner, doctor owner, or admin)
     const patientProfile = await Patient.findOne({ user: req.user._id });
     const doctorProfile = await Doctor.findOne({ user: req.user._id });
     const isAdmin = req.user.role === 'admin';
@@ -223,10 +246,11 @@ exports.cancelAppointment = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
+    // 4. Update status to cancelled
     appointment.status = 'cancelled';
     await appointment.save();
 
-    // Handle Refund for Prepaid Bookings
+    // 5. Handle automated refund for prepaid bookings
     if (appointment.paymentMode === 'prepaid') {
       const originalPayment = await Payment.findOne({
         appointment: appointment._id,
@@ -234,7 +258,7 @@ exports.cancelAppointment = async (req, res) => {
       });
 
       if (originalPayment) {
-        // 1. Create Refund Transaction
+        // Create refund transaction
         await Payment.create({
           patient: appointment.patient,
           doctor: appointment.doctor,
@@ -250,8 +274,7 @@ exports.cancelAppointment = async (req, res) => {
           notes: `Refund for cancelled appointment on ${appointment.date}`
         });
 
-        // 2. Update Patient's Wallet Balance
-        // Find the user associated with the patient profile
+        // Credit amount back to patient's wallet balance
         const pProfile = await Patient.findById(appointment.patient);
         if (pProfile) {
           await User.findByIdAndUpdate(pProfile.user, {
@@ -271,9 +294,8 @@ exports.cancelAppointment = async (req, res) => {
         populate: { path: 'user', select: 'name email' },
       });
 
-    // Notify appropriate party
+    // 6. Notify counterparty (doctor or patient)
     if (isPatientOwner) {
-      // Notify doctor
       const targetDoctor = await Doctor.findById(appointment.doctor);
       if (targetDoctor) {
         await createNotification({
@@ -289,7 +311,6 @@ exports.cancelAppointment = async (req, res) => {
         });
       }
     } else if (isDoctorOwner || isAdmin) {
-      // Notify patient
       const targetPatient = await Patient.findById(appointment.patient);
       if (targetPatient) {
         await createNotification({
@@ -312,18 +333,30 @@ exports.cancelAppointment = async (req, res) => {
   }
 };
 
-// Get doctor's appointments
+
+
+
+
+
+
+
+
+// ================= GET DOCTOR APPOINTMENTS =================
+// Logic: Filters doctor's appointments by upcoming/past, status, or patient search term with pagination
 exports.getDoctorAppointments = async (req, res) => {
   try {
+    // 1. Get doctor profile
     const doctorProfile = await Doctor.findOne({ user: req.user._id });
     if (!doctorProfile) return res.json({ appointments: [], total: 0 });
 
+    // 2. Parse query parameters
     const { search, status, view, page = 1, limit = 10 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
     let query = { doctor: doctorProfile._id };
     const today = new Date().toLocaleDateString('en-CA');
 
+    // 3. Apply timeframe filter (upcoming vs past)
     if (view === 'upcoming') {
       query.date = { $gte: today };
       query.status = { $nin: ['cancelled', 'completed'] };
@@ -338,11 +371,8 @@ exports.getDoctorAppointments = async (req, res) => {
       query.status = status;
     }
 
-    // Search by Patient Name
+    // 4. Search by patient name if provided
     if (search) {
-      const User = require('../models/user.model');
-      const Patient = require('../models/patient.model');
-      
       const matchingUsers = await User.find({
         name: { $regex: search, $options: 'i' }
       }).distinct('_id');
@@ -354,6 +384,7 @@ exports.getDoctorAppointments = async (req, res) => {
       query.patient = { $in: matchingPatients };
     }
 
+    // 5. Query paginated appointments
     const total = await Appointment.countDocuments(query);
     const appointments = await Appointment.find(query)
       .populate({
@@ -376,9 +407,20 @@ exports.getDoctorAppointments = async (req, res) => {
   }
 };
 
-// Update appointment status (doctor / admin)
+
+
+
+
+
+
+
+
+
+// ================= UPDATE APPOINTMENT STATUS =================
+// Logic: Updates status, notes, diagnosis, handles reschedule requests, and sends notification to patient
 exports.updateAppointmentStatus = async (req, res) => {
   try {
+    // 1. Extract update payload
     const { status, notes, diagnosis, date, time } = req.body;
     const validStatuses = ['booked', 'confirmed', 'completed', 'cancelled', 'rescheduled', 'reschedule_requested'];
 
@@ -392,7 +434,7 @@ exports.updateAppointmentStatus = async (req, res) => {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
-    // Verify ownership
+    // 2. Verify doctor ownership or admin authorization
     const doctorProfile = await Doctor.findOne({ user: req.user._id });
     const isDoctor = doctorProfile && appointment.doctor.toString() === doctorProfile._id.toString();
     const isAdmin = req.user.role === 'admin';
@@ -401,11 +443,13 @@ exports.updateAppointmentStatus = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
+    // 3. Update clinical notes and schedule attributes
     if (date) appointment.date = date;
     if (time) appointment.time = time;
     if (notes) appointment.notes = notes;
     if (diagnosis) appointment.diagnosis = diagnosis;
 
+    // 4. Update appointment status & handle reschedule approval/rejection
     if (status) {
       if (status === 'rescheduled' && appointment.status === 'reschedule_requested') {
         appointment.date = appointment.requestedDate;
@@ -414,7 +458,6 @@ exports.updateAppointmentStatus = async (req, res) => {
         appointment.requestedTime = null;
         appointment.status = 'rescheduled';
       } else if (appointment.status === 'reschedule_requested' && status !== 'rescheduled' && status !== 'reschedule_requested') {
-        // If rejected, just clear the requested fields and apply the new status (like 'booked' or 'confirmed')
         appointment.requestedDate = null;
         appointment.requestedTime = null;
         appointment.status = status;
@@ -425,12 +468,12 @@ exports.updateAppointmentStatus = async (req, res) => {
 
     await appointment.save();
 
-    // Re-fetch populated appointment for response
+    // 5. Populate updated document
     const populated = await Appointment.findById(appointment._id)
       .populate({ path: 'doctor', populate: { path: 'user', select: 'name email' } })
       .populate({ path: 'patient', populate: { path: 'user', select: 'name email' } });
 
-    // Notify patient
+    // 6. Notify patient of status update
     const targetPatient = await Patient.findById(appointment.patient);
     if (targetPatient) {
       await createNotification({
@@ -452,11 +495,22 @@ exports.updateAppointmentStatus = async (req, res) => {
   }
 };
 
-// Reschedule appointment
+
+
+
+
+
+
+
+
+
+
+// ================= RESCHEDULE APPOINTMENT =================
+// Logic: Validates new slot availability, marks status as reschedule_requested, and notifies counterparty
 exports.rescheduleAppointment = async (req, res) => {
   try {
+    // 1. Extract requested new date and time
     const { date, time, reason } = req.body;
-    console.log('Reschedule Request:', { id: req.params.id, date, time, reason });
 
     if (!date || !time) {
       return res.status(400).json({ message: 'New date and time are required' });
@@ -468,6 +522,7 @@ exports.rescheduleAppointment = async (req, res) => {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
+    // 2. Verify authorization (patient, doctor, or admin)
     const patientProfile = await Patient.findOne({ user: req.user._id });
     const doctorProfile = await Doctor.findOne({ user: req.user._id });
     const isAdmin = req.user.role === 'admin';
@@ -479,7 +534,7 @@ exports.rescheduleAppointment = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Check conflict
+    // 3. Check for booking conflicts at the new time slot
     const conflict = await Appointment.findOne({
       _id: { $ne: appointment._id },
       doctor: appointment.doctor,
@@ -492,6 +547,7 @@ exports.rescheduleAppointment = async (req, res) => {
       return res.status(400).json({ message: 'The new time slot is already booked' });
     }
 
+    // 4. Save requested date/time and update status to reschedule_requested
     const updated = await Appointment.findByIdAndUpdate(
       req.params.id,
       { 
@@ -509,7 +565,7 @@ exports.rescheduleAppointment = async (req, res) => {
       populate: { path: 'user', select: 'name email' },
     });
 
-    // Notify other party
+    // 5. Notify the other party
     let recipientUser;
     if (isPatient) {
       const d = await Doctor.findById(updated.doctor);
@@ -539,7 +595,18 @@ exports.rescheduleAppointment = async (req, res) => {
   }
 };
 
-// Get all appointments (admin)
+
+
+
+
+
+
+
+
+
+
+// ================= GET ALL APPOINTMENTS (ADMIN) =================
+// Logic: Returns all system appointments populated with doctor and patient information
 exports.getAllAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find()
@@ -558,3 +625,4 @@ exports.getAllAppointments = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+

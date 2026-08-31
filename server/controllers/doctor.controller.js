@@ -5,14 +5,23 @@ const Payment = require('../models/payment.model');
 const PendingUser = require('../models/pendingUser.model');
 const Review = require('../models/review.model');
 const User = require('../models/user.model');
+const MedicalRecord = require('../models/medicalRecord.model');
+const Patient = require('../models/patient.model');
 const mongoose = require('mongoose');
 const { redisClient } = require('../config/redis');
 
+
+
+
+
+// ================= GET ALL DOCTORS =================
+// Logic: Checks Redis cache, builds dynamic filter query (specialization, fee, hospital, keyword), fetches approved doctors, and caches result
 const getAllDoctors = async (req, res) => {
 	try {
+		// 1. Extract query filter parameters
 		const { specialization, hospital, minFee, maxFee, search } = req.query;
 
-		// Generate a unique cache key based on query parameters
+		// 2. Check Redis cache for existing results
 		const cacheKey = `doctors:${JSON.stringify(req.query || {})}`;
 		try {
 			const cachedData = await redisClient.get(cacheKey);
@@ -25,6 +34,7 @@ const getAllDoctors = async (req, res) => {
 			console.error('Redis get error:', err);
 		}
 
+		// 3. Build MongoDB query for approved doctors
 		let query = { isApproved: true };
 
 		if (specialization) {
@@ -46,24 +56,36 @@ const getAllDoctors = async (req, res) => {
 			];
 		}
 
+		// 4. Query database and populate user profile info
 		const doctors = await Doctor.find(query)
 			.populate('user', 'name email role profilePicture')
 			.lean();
 			
+		// 5. Store fetched list in Redis cache (1 hour TTL)
 		try {
-			await redisClient.setEx(cacheKey, 3600, JSON.stringify(doctors)); // Cache for 1 hour
+			await redisClient.setEx(cacheKey, 3600, JSON.stringify(doctors));
 		} catch (err) {
 			console.error('Redis setEx error:', err);
 		}
 
+		// 6. Return response
 		res.json(doctors);
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}
 };
 
+
+
+
+
+
+
+// ================= GET DOCTOR BY ID =================
+// Logic: Checks Redis cache, finds single approved doctor by ID, populates user details, and caches result
 const getDoctorById = async (req, res) => {
 	try {
+		// 1. Extract doctor ID and check cache
 		const doctorId = req.params.id;
 		const cacheKey = `doctor:${doctorId}`;
 
@@ -78,12 +100,15 @@ const getDoctorById = async (req, res) => {
 			console.error('Redis get error:', err);
 		}
 
+		// 2. Fetch doctor from database with populated user details
 		const doctor = await Doctor.findById(doctorId).populate('user', 'name email role profilePicture');
 
+		// 3. Ensure doctor exists and is approved by admin
 		if (!doctor || !doctor.isApproved) {
 			return res.status(404).json({ message: 'Doctor not found or not approved' });
 		}
 
+		// 4. Cache doctor profile in Redis (1 hour TTL)
 		try {
 			await redisClient.setEx(cacheKey, 3600, JSON.stringify(doctor));
 		} catch (err) {
@@ -96,16 +121,28 @@ const getDoctorById = async (req, res) => {
 	}
 };
 
+
+
+
+
+
+
+
+
+
+// ================= GET MY DOCTOR PROFILE =================
+// Logic: Finds doctor profile for authenticated user, auto-creating a draft if newly registered
 const getMyDoctorProfile = async (req, res) => {
 	try {
+		// 1. Find doctor profile for logged-in user
 		let doctor = await Doctor.findOne({ user: req.user._id }).populate('user', 'name email role profilePicture');
 
+		// 2. If no profile exists yet, auto-create default unapproved profile
 		if (!doctor) {
-			// Auto-create basic profile for newly registered doctors
 			doctor = await Doctor.create({ 
 				user: req.user._id,
 				specialization: 'General Practice',
-				isApproved: false // Still needs admin approval
+				isApproved: false // Requires admin approval
 			});
 			doctor = await doctor.populate('user', 'name email role profilePicture');
 		}
@@ -116,8 +153,11 @@ const getMyDoctorProfile = async (req, res) => {
 	}
 };
 
+// ================= UPSERT DOCTOR PROFILE =================
+// Logic: Updates or creates doctor details (fees, hospital, bio, slots) and syncs user name
 const upsertDoctorProfile = async (req, res) => {
 	try {
+		// 1. Extract profile attributes
 		const {
 			name,
 			specialization,
@@ -129,15 +169,17 @@ const upsertDoctorProfile = async (req, res) => {
 			availableSlots,
 		} = req.body;
 
+		// 2. Validate mandatory fields
 		if (!specialization) {
 			return res.status(400).json({ message: 'Specialization is required' });
 		}
 
-		// Update User name if provided
+		// 3. Sync User model name if updated
 		if (name) {
 			await User.findByIdAndUpdate(req.user._id, { name });
 		}
 
+		// 4. Upsert doctor record
 		const payload = {
 			user: req.user._id,
 			specialization,
@@ -166,14 +208,18 @@ const upsertDoctorProfile = async (req, res) => {
 	}
 };
 
+// ================= DELETE DOCTOR PROFILE =================
+// Logic: Verifies ownership or admin privileges, then deletes the doctor profile
 const deleteDoctorProfile = async (req, res) => {
 	try {
+		// 1. Find doctor profile
 		const doctor = await Doctor.findById(req.params.id);
 
 		if (!doctor) {
 			return res.status(404).json({ message: 'Doctor profile not found' });
 		}
 
+		// 2. Check authorization (profile owner or admin only)
 		const isOwner = doctor.user.toString() === req.user._id.toString();
 		const isAdmin = req.user.role === 'admin';
 
@@ -181,6 +227,7 @@ const deleteDoctorProfile = async (req, res) => {
 			return res.status(403).json({ message: 'Access denied' });
 		}
 
+		// 3. Remove document from database
 		await doctor.deleteOne();
 		res.json({ message: 'Doctor profile deleted' });
 	} catch (error) {
@@ -188,12 +235,22 @@ const deleteDoctorProfile = async (req, res) => {
 	}
 };
 
+
+
+
+
+
+
+
+
+// ================= GET DOCTOR STATS =================
+// Logic: Computes dashboard statistics (today's appointments, total unique patients, total revenue, pending approvals)
 const getDoctorStats = async (req, res) => {
 	try {
+		// 1. Get doctor profile
 		let doctorProfile = await Doctor.findOne({ user: req.user._id });
 
 		if (!doctorProfile) {
-			// Auto-create basic profile
 			doctorProfile = await Doctor.create({ 
 				user: req.user._id,
 				specialization: 'General Practice',
@@ -204,15 +261,18 @@ const getDoctorStats = async (req, res) => {
 		const doctorId = doctorProfile._id;
 		const today = new Date().toLocaleDateString('en-CA');
 
+		// 2. Count appointments scheduled for today
 		const todaysAppointments = await Appointment.countDocuments({ 
 			doctor: doctorId, 
 			date: today,
 			status: { $ne: 'cancelled' }
 		});
 
+		// 3. Count unique patients treated
 		const patients = await Appointment.distinct('patient', { doctor: doctorId });
 		const totalPatients = patients.length;
 
+		// 4. Aggregate total earnings from paid appointment payments
 		const earningsAgg = await Appointment.aggregate([
 			{ $match: { doctor: doctorId, status: { $ne: 'cancelled' } } },
 			{
@@ -230,23 +290,36 @@ const getDoctorStats = async (req, res) => {
 
 		const totalEarnings = (earningsAgg[0] && earningsAgg[0].total) || 0;
 
+		// 5. Check pending approvals for admin context
 		let pendingApprovals = 0;
 		if (req.user.role === 'admin') {
 			pendingApprovals = await PendingUser.countDocuments();
 		}
 
+		// 6. Return combined stats object
 		res.json({ todaysAppointments, totalPatients, totalEarnings, pendingApprovals });
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}
 };
 
+
+
+
+
+
+
+
+// ================= GET MY REVIEWS =================
+// Logic: Retrieves paginated patient reviews and ratings for the authenticated doctor
 const getMyReviews = async (req, res) => {
 	try {
+		// 1. Parse pagination parameters
 		const page = parseInt(req.query.page) || 1;
 		const limit = parseInt(req.query.limit) || 10;
 		const skip = (page - 1) * limit;
 
+		// 2. Count total reviews and query paginated review records
 		const total = await Review.countDocuments({ doctor: req.user._id });
 		const reviews = await Review.find({ doctor: req.user._id })
 			.populate('patient', 'name profilePicture')
@@ -254,6 +327,7 @@ const getMyReviews = async (req, res) => {
 			.skip(skip)
 			.limit(limit);
 
+		// 3. Return reviews with pagination metadata
 		res.json({
 			reviews,
 			total,
@@ -265,14 +339,27 @@ const getMyReviews = async (req, res) => {
 	}
 };
 
-// Manage Availability Slots
+
+
+
+
+
+
+
+
+
+
+
+// ================= ADD AVAILABLE SLOT =================
+// Logic: Splits start to end time into 15-minute intervals, avoids duplicate slots, and saves them
 const addAvailableSlot = async (req, res) => {
 	try {
+    // 1. Extract inputs and find doctor profile
     const { day, startTime, endTime } = req.body;
     const doctorProfile = await Doctor.findOne({ user: req.user._id });
     if (!doctorProfile) return res.status(404).json({ message: 'Doctor profile not found' });
     
-    // Function to generate 15-min slots
+    // 2. Helper: Split time interval into 15-minute booking slots
     const generateSlots = (start, end) => {
       const slots = [];
       let current = new Date(`2000-01-01T${start}:00`);
@@ -297,7 +384,7 @@ const addAvailableSlot = async (req, res) => {
       return res.status(400).json({ message: 'Invalid time range for slots.' });
     }
 
-    // Filter out duplicates
+    // 3. Filter out duplicate slots already saved for this day
     const filteredNewSlots = newSlots.filter(ns => 
       !doctorProfile.availableSlots.some(s => s.day === ns.day && s.startTime === ns.startTime)
     );
@@ -306,6 +393,7 @@ const addAvailableSlot = async (req, res) => {
       return res.status(400).json({ message: 'All slots in this range already exist.' });
     }
 
+    // 4. Save new slots to doctor profile
     doctorProfile.availableSlots.push(...filteredNewSlots);
     await doctorProfile.save();
     res.status(201).json(doctorProfile.availableSlots);
@@ -314,11 +402,24 @@ const addAvailableSlot = async (req, res) => {
 	}
 };
 
+
+
+
+
+
+
+
+
+
+// ================= DELETE AVAILABLE SLOT =================
+// Logic: Removes a specific availability slot from the doctor profile by slot ID
 const deleteAvailableSlot = async (req, res) => {
 	try {
+		// 1. Find doctor profile
 		const doctorProfile = await Doctor.findOne({ user: req.user._id });
 		if (!doctorProfile) return res.status(404).json({ message: 'Doctor profile not found' });
 
+		// 2. Remove specified slot by ID
 		doctorProfile.availableSlots = doctorProfile.availableSlots.filter(
 			slot => slot._id.toString() !== req.params.slotId
 		);
@@ -329,32 +430,45 @@ const deleteAvailableSlot = async (req, res) => {
 	}
 };
 
+
+
+
+
+
+
+
+
+
+
+
+// ================= GET MY PATIENTS =================
+// Logic: Finds unique patients who have booked appointments with this doctor, supports search and pagination
 const getMyPatients = async (req, res) => {
 	try {
+		// 1. Find doctor profile
 		const doctorProfile = await Doctor.findOne({ user: req.user._id });
 		if (!doctorProfile) return res.status(404).json({ message: 'Doctor profile not found' });
 
+		// 2. Parse pagination
 		const page = parseInt(req.query.page) || 1;
 		const limit = parseInt(req.query.limit) || 10;
 		const skip = (page - 1) * limit;
 
-		// Get unique patient IDs from appointments
-		const appointmentModel = require('../models/appointment.model');
-		const patientIds = await appointmentModel.find({ doctor: doctorProfile._id }).distinct('patient');
-
-		const patientModel = require('../models/patient.model');
+		// 3. Get unique patient IDs from appointments
+		const patientIds = await Appointment.find({ doctor: doctorProfile._id }).distinct('patient');
 		const query = { _id: { $in: patientIds } };
 
+		// 4. Apply name search filter if provided
 		if (req.query.search) {
-			const userModel = require('../models/user.model');
-			const matchingUsers = await userModel.find({
+			const matchingUsers = await User.find({
 				name: { $regex: req.query.search, $options: 'i' }
 			}).distinct('_id');
 			query.user = { $in: matchingUsers };
 		}
 
-		const total = await patientModel.countDocuments(query);
-		const patients = await patientModel.find(query)
+		// 5. Query paginated patients
+		const total = await Patient.countDocuments(query);
+		const patients = await Patient.find(query)
 			.populate('user', 'name email profilePicture')
 			.skip(skip)
 			.limit(limit);
@@ -372,26 +486,50 @@ const getMyPatients = async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+// ================= GET PATIENT MEDICAL RECORDS =================
+// Logic: Retrieves all medical record history for a patient, populated with doctor names
 const getPatientMedicalRecords = async (req, res) => {
 	try {
-		const MedicalRecord = require('../models/medicalRecord.model');
+		// 1. Query records by patient ID and populate doctor details
 		const records = await MedicalRecord.find({ patient: req.params.patientId })
 			.populate('doctor', 'user')
 			.populate({ path: 'doctor', populate: { path: 'user', select: 'name' } })
 			.sort({ createdAt: -1 });
+
 		res.json(records);
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}
 };
 
+
+
+
+
+
+
+
+
+
+// ================= GET AVAILABLE SLOTS BY DATE =================
+// Logic: Looks up weekday slots for doctor and filters out slots already booked on that date
 const getAvailableSlotsByDate = async (req, res) => {
 	try {
+		// 1. Extract doctor ID and requested date
 		const { doctorId } = req.params;
-		const { date } = req.query; // YYYY-MM-DD
+		const { date } = req.query; // Format: YYYY-MM-DD
 
 		if (!date) return res.status(400).json({ message: 'Date is required' });
 
+		// 2. Find doctor and determine day of the week
 		const doctor = await Doctor.findById(doctorId);
 		if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
 
@@ -399,10 +537,10 @@ const getAvailableSlotsByDate = async (req, res) => {
 		const d = new Date(date);
 		const dayOfWeek = days[d.getDay()];
 
-		// Filter slots for that day
+		// 3. Filter doctor's general schedule for this weekday
 		const daySlots = doctor.availableSlots.filter(s => s.day === dayOfWeek);
 
-		// Get already booked appointments for this doctor on this date
+		// 4. Query active appointments already booked on this specific date
 		const bookedAppointments = await Appointment.find({
 			doctor: doctorId,
 			date,
@@ -411,7 +549,7 @@ const getAvailableSlotsByDate = async (req, res) => {
 
 		const bookedTimes = bookedAppointments.map(a => a.time);
 
-		// Filter out booked slots
+		// 5. Filter out occupied time slots
 		const availableSlots = daySlots.filter(s => !bookedTimes.includes(s.startTime));
 
 		res.json(availableSlots);
@@ -434,3 +572,4 @@ module.exports = {
 	getPatientMedicalRecords,
 	getAvailableSlotsByDate,
 };
+

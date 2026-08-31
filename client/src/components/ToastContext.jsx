@@ -1,3 +1,4 @@
+// Toast Notification Context: global popup alert manager with auto-dismiss timer.
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import styles from './Toast.module.css';
 
@@ -8,6 +9,7 @@ export const useToast = () => useContext(ToastContext);
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
+  // 1. Add toast notification with duration timer (default 3000ms)
   const addToast = useCallback((message, type = 'info', duration = 3000) => {
     const id = Math.random().toString(36).substr(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -17,6 +19,7 @@ export const ToastProvider = ({ children }) => {
     }, duration);
   }, []);
 
+  // 2. Remove toast by ID
   const removeToast = useCallback((id) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
@@ -24,6 +27,7 @@ export const ToastProvider = ({ children }) => {
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
+      {/* Toast Alert Container Floating Elements */}
       <div className={styles.toastContainer}>
         {toasts.map((toast) => (
           <div 
@@ -39,3 +43,4 @@ export const ToastProvider = ({ children }) => {
     </ToastContext.Provider>
   );
 };
+

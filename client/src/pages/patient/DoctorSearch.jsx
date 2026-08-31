@@ -1,3 +1,4 @@
+// Doctor Search Page: allows patients to browse, filter by specialization, and favorite specialists.
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
@@ -20,11 +21,14 @@ const DoctorSearch = () => {
   const [searchName, setSearchName] = useState("");
   const [specialization, setSpecialization] = useState("");
 
+  // 1. Fetch available doctors and user's saved favorites
   useEffect(() => {
     fetchDoctors();
     fetchSavedDoctors();
   }, []);
 
+  // ================= FETCH DOCTORS =================
+  // 2. Fetch approved doctors from API
   const fetchDoctors = async () => {
     try {
       setLoading(true);
@@ -38,6 +42,8 @@ const DoctorSearch = () => {
     }
   };
 
+  // ================= FETCH SAVED DOCTORS =================
+  // 3. Fetch patient's bookmarked doctors list
   const fetchSavedDoctors = async () => {
     try {
       const res = await api.get('/api/patients/saved-doctors');
@@ -48,7 +54,9 @@ const DoctorSearch = () => {
     }
   };
 
+  // ================= TOGGLE FAVORITE =================
   const toggleFavorite = async (doctorId) => {
+
     try {
       if (savedDoctorIds.has(doctorId)) {
         await api.delete(`/api/patients/saved-doctors/${doctorId}`);

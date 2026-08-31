@@ -1,28 +1,20 @@
-// Main Express application: configure middleware and mount API routes.
-// Exports `app` so the server starter can boot and tests can import it.
+// Main Express application: configure middleware, security, and mount API routes.
 const express = require('express');
 const cors = require('cors'); 
 const path = require('path');
 const morgan = require('morgan');
 const compression = require('compression'); 
-const authRoutes = require('./routes/auth.routes');
 const xss = require('xss-clean');
 const mongoSanitize = require('express-mongo-sanitize');
 
-const app = express();
-
-// Configure Server-Side Rendering (SSR) view engine
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(compression());
-app.use(morgan(':method :url :status :response-time ms'));
+// Import Route Handlers
+const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const appointmentRoutes = require('./routes/appointment.routes');
 const medicalRecordRoutes = require('./routes/medicalRecord.routes');
 const doctorRoutes = require('./routes/doctor.routes');
 const reviewRoutes = require('./routes/review.routes');
 const patientRoutes = require('./routes/patient.routes');
-
 const paymentRoutes = require('./routes/payment.routes');
 const prescriptionRoutes = require('./routes/prescription.routes');
 const adminRoutes = require('./routes/admin.routes');
@@ -30,26 +22,46 @@ const notificationRoutes = require('./routes/notification.routes');
 const ragRoutes = require('./routes/rag.routes');
 const sqlAnalyticsRoutes = require('./routes/sqlAnalytics.routes');
 const systemRoutes = require('./routes/system.routes');
-const { notFound, errorHandler } = require('./middleware/error.middleware');
 
+// Import Middleware
+const { notFound, errorHandler } = require('./middleware/error.middleware');
 const { apiLimiter } = require('./middleware/rateLimiter.middleware');
 
+const app = express();
+
+// ================= VIEW ENGINE (SSR DEMO) =================
+// Configure Server-Side Rendering (SSR) view engine using EJS
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// ================= GLOBAL MIDDLEWARES =================
+// 1. Gzip compression for high-performance HTTP responses
+app.use(compression());
+
+// 2. HTTP request logging
+app.use(morgan(':method :url :status :response-time ms'));
+
+// 3. Cross-Origin Resource Sharing (CORS) & JSON body parser
 app.use(cors());
 app.use(express.json());
 
-// Input Sanitization (Protects against XSS and NoSQL Injection)
+// 4. Security: Input Sanitization (Protects against XSS and NoSQL Query Injection)
 app.use(xss());
 app.use(mongoSanitize());
 
+// 5. Static file hosting for uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// 6. Global API Rate Limiting (200 req / 15 min)
 app.use('/api/', apiLimiter);
+
+// ================= HEALTH & SSR ROUTES =================
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
-// SSR Demonstration Route
+// SSR Demonstration Route: Renders downloadable/printable medical invoice template
 app.get('/invoice/:id', (req, res) => {
-  // Render the EJS template located in views/invoice.ejs
   res.render('invoice', {
     invoiceId: req.params.id,
     date: new Date().toLocaleDateString(),
@@ -60,25 +72,27 @@ app.get('/invoice/:id', (req, res) => {
   });
 });
 
-app.use('/api/appointments', appointmentRoutes);
-
-app.use('/api/doctors', doctorRoutes);
-app.use('/api/users', userRoutes);
+// ================= MOUNT API ROUTES =================
 app.use('/api/auth', authRoutes);
-app.use('/api/reviews', reviewRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/patients', patientRoutes);
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/appointments', appointmentRoutes);
 app.use('/api/medicalRecords', medicalRecordRoutes);
-app.use('/api/payments', paymentRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/rag', ragRoutes);
 app.use('/api/sql', sqlAnalyticsRoutes);
 app.use('/api/system', systemRoutes);
 
+// ================= ERROR HANDLING MIDDLEWARE =================
 app.use(notFound);
 app.use(errorHandler);
 
+// Production Static Serving for React SPA Frontend
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '..', 'client', 'dist')));
   app.get(/(.*)/, (req, res) => {
@@ -86,4 +100,4 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-module.exports = app;
+module.exports = app;
