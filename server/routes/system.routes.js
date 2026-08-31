@@ -11,6 +11,9 @@ router.get('/hoisting', systemController.getHoistingDemo);
 // Demonstrate JavaScript Promises vs Callbacks (0.1 pts)
 router.get('/promises-vs-callbacks', systemController.getPromisesVsCallbacksDemo);
 
+// Demonstrate JavaScript Closures (0.1 pts)
+router.get('/closures', systemController.getClosuresDemo);
+
 // Run all pedagogical demos in single endpoint
 router.get('/all-demos', systemController.getAllDemos);
 
