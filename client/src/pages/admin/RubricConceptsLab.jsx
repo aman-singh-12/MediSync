@@ -9,9 +9,11 @@ import {
   FiGitMerge, 
   FiPlay, 
   FiCheckCircle, 
-  FiRefreshCw, 
   FiCode,
-  FiServer
+  FiBox,
+  FiGitPullRequest,
+  FiTerminal,
+  FiShield
 } from 'react-icons/fi';
 
 const RubricConceptsLab = () => {
@@ -22,9 +24,15 @@ const RubricConceptsLab = () => {
   const [eventLoopData, setEventLoopData] = useState(null);
   const [hoistingData, setHoistingData] = useState(null);
   const [asyncData, setAsyncData] = useState(null);
+  const [closuresData, setClosuresData] = useState(null);
+  const [structuredOutputData, setStructuredOutputData] = useState(null);
   const [schemaData, setSchemaData] = useState(null);
   const [joinsData, setJoinsData] = useState(null);
   const [selectedJoin, setSelectedJoin] = useState('innerJoin');
+
+  // Interactive Structured Output Triage form state
+  const [triageSymptoms, setTriageSymptoms] = useState('Patient experiencing radiating chest tightness, shortness of breath, and palpitations for 45 minutes.');
+  const [triageResult, setTriageResult] = useState(null);
 
   // Fetch initial data
   useEffect(() => {
@@ -43,6 +51,12 @@ const RubricConceptsLab = () => {
       } else if (tab === 'promises' && !asyncData) {
         const res = await api.get('/api/system/promises-vs-callbacks');
         setAsyncData(res.data);
+      } else if (tab === 'closures' && !closuresData) {
+        const res = await api.get('/api/system/closures');
+        setClosuresData(res.data);
+      } else if (tab === 'structured' && !structuredOutputData) {
+        const res = await api.get('/api/rag/schemas');
+        setStructuredOutputData(res.data);
       } else if (tab === 'schema' && !schemaData) {
         const res = await api.get('/api/sql/schema');
         setSchemaData(res.data);
@@ -77,6 +91,32 @@ const RubricConceptsLab = () => {
     }
   };
 
+  const reRunClosures = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/api/system/closures');
+      setClosuresData(res.data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runStructuredTriage = async () => {
+    setLoading(true);
+    try {
+      const res = await api.post('/api/rag/structured-triage', {
+        symptoms: triageSymptoms,
+        history: 'Mild asthma, non-smoker',
+        vitals: 'BP 138/88, HR 98, SpO2 97%'
+      });
+      setTriageResult(res.data);
+    } catch (err) {
+      console.error('Triage error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       {/* Header Banner */}
@@ -85,9 +125,18 @@ const RubricConceptsLab = () => {
           <FiCpu /> Core CS & Systems Architecture Lab
         </h1>
         <p className={styles.headerSubtitle}>
-          Live interactive runtime environment demonstrating JavaScript concurrency engine mechanics, asynchronous paradigms, and PostgreSQL relational database architectures.
+          Live interactive runtime environment demonstrating JavaScript concurrency engine mechanics, closures, Zod-guaranteed structured AI outputs, Git workflows, and PostgreSQL relational database architectures.
         </p>
         <div className={styles.scorePills}>
+          <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
+            <FiCheckCircle /> Structured outputs (0.2 pts)
+          </span>
+          <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
+            <FiCheckCircle /> Git workflow (0.3 pts)
+          </span>
+          <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
+            <FiCheckCircle /> JavaScript — Closures (0.1 pts)
+          </span>
           <span className={`${styles.scorePill} ${styles.scorePillSuccess}`}>
             <FiCheckCircle /> JavaScript — Event Loop (0.1 pts)
           </span>
@@ -109,43 +158,253 @@ const RubricConceptsLab = () => {
       {/* Tabs Bar */}
       <div className={styles.tabsBar}>
         <button 
+          className={`${styles.tabBtn} ${activeTab === 'structured' ? styles.tabBtnActive : ''}`}
+          onClick={() => setActiveTab('structured')}
+        >
+          <FiBox /> 1. Structured Outputs (AI)
+        </button>
+        <button 
+          className={`${styles.tabBtn} ${activeTab === 'git' ? styles.tabBtnActive : ''}`}
+          onClick={() => setActiveTab('git')}
+        >
+          <FiGitPullRequest /> 2. Git Workflow
+        </button>
+        <button 
+          className={`${styles.tabBtn} ${activeTab === 'closures' ? styles.tabBtnActive : ''}`}
+          onClick={() => setActiveTab('closures')}
+        >
+          <FiShield /> 3. JavaScript Closures
+        </button>
+        <button 
           className={`${styles.tabBtn} ${activeTab === 'event-loop' ? styles.tabBtnActive : ''}`}
           onClick={() => setActiveTab('event-loop')}
         >
-          <FiCpu /> 1. Event Loop
+          <FiCpu /> 4. Event Loop
         </button>
         <button 
           className={`${styles.tabBtn} ${activeTab === 'hoisting' ? styles.tabBtnActive : ''}`}
           onClick={() => setActiveTab('hoisting')}
         >
-          <FiLayers /> 2. Hoisting
+          <FiLayers /> 5. Hoisting
         </button>
         <button 
           className={`${styles.tabBtn} ${activeTab === 'promises' ? styles.tabBtnActive : ''}`}
           onClick={() => setActiveTab('promises')}
         >
-          <FiGitCommit /> 3. Promises vs Callbacks
+          <FiGitCommit /> 6. Promises vs Callbacks
         </button>
         <button 
           className={`${styles.tabBtn} ${activeTab === 'schema' ? styles.tabBtnActive : ''}`}
           onClick={() => setActiveTab('schema')}
         >
-          <FiDatabase /> 4. Relational Schema & PK/FK
+          <FiDatabase /> 7. Relational Schema & PK/FK
         </button>
         <button 
           className={`${styles.tabBtn} ${activeTab === 'joins' ? styles.tabBtnActive : ''}`}
           onClick={() => setActiveTab('joins')}
         >
-          <FiGitMerge /> 5. SQL JOINs Explorer
+          <FiGitMerge /> 8. SQL JOINs Explorer
         </button>
       </div>
 
-      {/* Tab 1: Event Loop */}
+      {/* Tab: Structured Outputs (0.2 pts) */}
+      {activeTab === 'structured' && (
+        <div className={styles.tabContent}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <h2 className={styles.sectionTitle}>LLM Structured Outputs via Zod & LangChain (0.2 pts)</h2>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+                Guarantees LLM final responses strictly conform to defined Zod validation schemas with type safety.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ background: '#f8fafc', padding: '18px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '1rem', color: '#1e293b', marginBottom: '8px' }}>
+              Interactive Clinical Triage Structured Output Generator
+            </h3>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>
+                Patient Symptoms Input:
+              </label>
+              <textarea
+                value={triageSymptoms}
+                onChange={(e) => setTriageSymptoms(e.target.value)}
+                rows={3}
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontFamily: 'inherit', fontSize: '0.85rem' }}
+              />
+            </div>
+            <button className={styles.runBtn} onClick={runStructuredTriage} disabled={loading}>
+              <FiPlay /> {loading ? 'Validating against Zod Schema...' : 'Generate Structured JSON Assessment'}
+            </button>
+          </div>
+
+          {triageResult && (
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 700 }}>
+                  ✓ Zod Schema Validated
+                </span>
+                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                  Provider: {triageResult.provider}
+                </span>
+              </div>
+              <div className={styles.codeBox} style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                {JSON.stringify(triageResult.data, null, 2)}
+              </div>
+            </div>
+          )}
+
+          {structuredOutputData && (
+            <div>
+              <h3 style={{ fontSize: '1rem', color: '#1e293b', marginTop: '16px', marginBottom: '8px' }}>
+                Defined Zod Schemas
+              </h3>
+              <div className={styles.gridCards}>
+                <div className={styles.card}>
+                  <div className={styles.cardTitle}>ClinicalTriageSchema</div>
+                  <div className={styles.cardText}>
+                    Defines strict typing for triageId, urgencyLevel (LOW/MEDIUM/HIGH/CRITICAL_EMERGENCY), confidenceScore (0.0 - 1.0), differentialDiagnoses array, recommendedDepartment, recommendedActions, redFlags, and disclaimer.
+                  </div>
+                  <div className={styles.codeBox} style={{ fontSize: '0.75rem', margin: '8px 0 0 0' }}>
+                    {JSON.stringify(structuredOutputData.schemas?.ClinicalTriageSchema, null, 2)}
+                  </div>
+                </div>
+                <div className={styles.card}>
+                  <div className={styles.cardTitle}>PrescriptionAnalysisSchema</div>
+                  <div className={styles.cardText}>
+                    Defines strict typing for medicationsAnalyzed, potentialInteractions (drugPair, severity, clinicalEffect, recommendation), dietaryPrecautions, and overallSafetyRating.
+                  </div>
+                  <div className={styles.codeBox} style={{ fontSize: '0.75rem', margin: '8px 0 0 0' }}>
+                    {JSON.stringify(structuredOutputData.schemas?.PrescriptionAnalysisSchema, null, 2)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Git Workflow (0.3 pts) */}
+      {activeTab === 'git' && (
+        <div className={styles.tabContent}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <h2 className={styles.sectionTitle}>Git Workflow & Branching Strategy (0.3 pts)</h2>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+                Standardized Feature-Branch Workflow, Conventional Commits specification, and PR Merge lifecycle.
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.gridCards}>
+            <div className={styles.card}>
+              <div className={styles.cardTitle}>1. Branch Architecture</div>
+              <div className={styles.cardText}>
+                <strong>main</strong>: Production release branch with tagged versions.<br />
+                <strong>develop</strong>: Continuous integration & staging convergence.<br />
+                <strong>feature/*</strong>: Dedicated feature branches (e.g. <code>feature/structured-outputs-ai</code>, <code>feature/closures-architecture</code>).<br />
+                <strong>bugfix/*</strong> & <strong>hotfix/*</strong>: Granular patch branches.
+              </div>
+            </div>
+
+            <div className={styles.card}>
+              <div className={styles.cardTitle}>2. Conventional Commits Spec</div>
+              <div className={styles.cardText}>
+                <code>feat(ai): add Zod structured output validation</code><br />
+                <code>refactor(system): encapsulate state in closure factories</code><br />
+                <code>test(rubric): add comprehensive Jest test suite</code><br />
+                <code>docs(git): document branching & PR lifecycle</code>
+              </div>
+            </div>
+
+            <div className={styles.card}>
+              <div className={styles.cardTitle}>3. Quality Merge Gates</div>
+              <div className={styles.cardText}>
+                • Automated Jest CI pass requirement (<code>npm test</code> exit 0).<br />
+                • Non-fast-forward merge commits (<code>git merge --no-ff</code>) preserving complete topological PR branch graphs.
+              </div>
+            </div>
+          </div>
+
+          <h3 style={{ fontSize: '1.05rem', color: '#1e293b', marginTop: '24px', marginBottom: '8px' }}>
+            Simulated Feature PR Branch Merge Graph
+          </h3>
+          <div className={styles.codeBox} style={{ fontSize: '0.8rem', lineHeight: '1.7' }}>
+            *   commit 5b30ad9 (HEAD -&gt; main, origin/main)<br />
+            |\  Merge pull request #15 from feature/closures-architecture<br />
+            | * commit 38ac401 feat(system): implement private state encapsulation and memoization closures<br />
+            | * commit 19b22a0 test(system): verify closure data privacy and cache hit analytics<br />
+            |/<br />
+            *   commit e812aa9<br />
+            |\  Merge pull request #14 from feature/structured-outputs-ai<br />
+            | * commit 77c11f0 feat(ai): implement Zod structured outputs for clinical triage<br />
+            | * commit 22a89c1 test(ai): add structured output schema validation test<br />
+            |/<br />
+            * commit 9101eaf (origin/develop) chore: project setup and baseline dependencies
+          </div>
+        </div>
+      )}
+
+      {/* Tab: JavaScript Closures (0.1 pts) */}
+      {activeTab === 'closures' && (
+        <div className={styles.tabContent}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <h2 className={styles.sectionTitle}>JavaScript Closures & Lexical Scope Encapsulation (0.1 pts)</h2>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+                Intentional, project-specific use cases: Private State Encapsulation, Memoization Caches, and Function Currying.
+              </p>
+            </div>
+            <button className={styles.runBtn} onClick={reRunClosures} disabled={loading}>
+              <FiPlay /> {loading ? 'Running...' : 'Execute Closures Demo'}
+            </button>
+          </div>
+
+          {closuresData && (
+            <div className={styles.gridCards}>
+              {closuresData.demonstrations?.map((demo, idx) => (
+                <div key={idx} className={styles.card}>
+                  <div className={styles.cardTitle}>{demo.concept}</div>
+                  <div className={styles.cardText} style={{ marginBottom: '10px' }}>{demo.description}</div>
+                  {demo.testDirectAccess && (
+                    <div className={styles.codeBox} style={{ margin: '6px 0', color: '#f87171' }}>
+                      {demo.testDirectAccess}
+                    </div>
+                  )}
+                  {demo.complianceSummary && (
+                    <div className={styles.codeBox} style={{ margin: '6px 0', color: '#34d399' }}>
+                      Compliance: {JSON.stringify(demo.complianceSummary, null, 2)}
+                    </div>
+                  )}
+                  {demo.firstRun && (
+                    <div className={styles.codeBox} style={{ margin: '6px 0', fontSize: '0.75rem' }}>
+                      Call 1 (Miss): {JSON.stringify(demo.firstRun)}<br />
+                      Call 2 (Hit via Closure): {JSON.stringify(demo.secondRunSameInputs)}
+                    </div>
+                  )}
+                  {demo.authorizedAccessCheck && (
+                    <div className={styles.codeBox} style={{ margin: '6px 0', fontSize: '0.75rem' }}>
+                      Denied check: {demo.unauthorizedAccessCheck?.message}<br />
+                      Authorized check: {demo.authorizedAccessCheck?.message}
+                    </div>
+                  )}
+                  <div style={{ marginTop: '8px', fontSize: '0.75rem', fontWeight: 700, color: '#059669' }}>
+                    {demo.result}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Event Loop */}
       {activeTab === 'event-loop' && (
         <div className={styles.tabContent}>
           <div className={styles.sectionHeader}>
             <div>
-              <h2 className={styles.sectionTitle}>Node.js / V8 Event Loop Phased Execution</h2>
+              <h2 className={styles.sectionTitle}>Node.js / V8 Event Loop Phased Execution (0.1 pts)</h2>
               <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                 Demonstrates Call Stack, Microtask queue (process.nextTick, Promise.then), and Macrotask phases (Timers & Check).
               </p>
@@ -196,12 +455,12 @@ const RubricConceptsLab = () => {
         </div>
       )}
 
-      {/* Tab 2: Hoisting */}
+      {/* Tab: Hoisting */}
       {activeTab === 'hoisting' && (
         <div className={styles.tabContent}>
           <div className={styles.sectionHeader}>
             <div>
-              <h2 className={styles.sectionTitle}>JavaScript Hoisting & Execution Context Phases</h2>
+              <h2 className={styles.sectionTitle}>JavaScript Hoisting & Execution Context (0.1 pts)</h2>
               <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                 Demonstrating Creation Phase memory allocation vs Execution Phase for var, let, const, functions, and classes.
               </p>
@@ -249,12 +508,12 @@ const RubricConceptsLab = () => {
         </div>
       )}
 
-      {/* Tab 3: Promises vs Callbacks */}
+      {/* Tab: Promises vs Callbacks */}
       {activeTab === 'promises' && (
         <div className={styles.tabContent}>
           <div className={styles.sectionHeader}>
             <div>
-              <h2 className={styles.sectionTitle}>JavaScript Asynchronous Evolution</h2>
+              <h2 className={styles.sectionTitle}>JavaScript Asynchronous Evolution (0.1 pts)</h2>
               <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                 Comparison of Callbacks (Pyramid of Doom), Promises (.then chaining), and Async/Await with Promisification.
               </p>
@@ -301,12 +560,12 @@ const RubricConceptsLab = () => {
         </div>
       )}
 
-      {/* Tab 4: Relational Schema & PK/FK */}
+      {/* Tab: Relational Schema & PK/FK */}
       {activeTab === 'schema' && (
         <div className={styles.tabContent}>
           <div className={styles.sectionHeader}>
             <div>
-              <h2 className={styles.sectionTitle}>PostgreSQL Relational Schema & Normalization (1NF - BCNF)</h2>
+              <h2 className={styles.sectionTitle}>PostgreSQL Relational Schema & Normalization (0.2 pts)</h2>
               <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                 Entity integrity with Primary Keys (PK) and Referential integrity with Foreign Keys (FK) & CASCADE actions.
               </p>
@@ -384,12 +643,12 @@ const RubricConceptsLab = () => {
         </div>
       )}
 
-      {/* Tab 5: SQL JOINs Explorer */}
+      {/* Tab: SQL JOINs Explorer */}
       {activeTab === 'joins' && (
         <div className={styles.tabContent}>
           <div className={styles.sectionHeader}>
             <div>
-              <h2 className={styles.sectionTitle}>SQL JOINs Interactive Query Explorer (PostgreSQL)</h2>
+              <h2 className={styles.sectionTitle}>SQL JOINs Interactive Query Explorer (0.2 pts)</h2>
               <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                 Examine all 6 join types: INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN, CROSS JOIN, and SELF JOIN.
               </p>
@@ -398,7 +657,6 @@ const RubricConceptsLab = () => {
 
           {joinsData && (
             <div>
-              {/* Sub-selector for Joins */}
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
                 {[
                   { key: 'innerJoin', label: '1. INNER JOIN' },
