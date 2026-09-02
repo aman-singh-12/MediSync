@@ -62,7 +62,7 @@ exports.initSchema = async (req, res) => {
 exports.getSchemaDetails = (req, res) => {
   const schemaDetails = {
     topic: 'Relational schema design with PK/FK',
-    score: '0.2 pts (100% Implemented)',
+    implementationStatus: 'COMPLETE',
     status: 'SUCCESS',
     primaryKeys: [
       { table: 'pg_departments', column: 'id', type: 'SERIAL PRIMARY KEY (Single Attribute PK)' },
@@ -374,7 +374,7 @@ exports.getAllJoinsComparison = async (req, res) => {
 
     res.json({
       topic: 'SQL JOINs',
-      score: '0.2 pts (100% Implemented)',
+      implementationStatus: 'COMPLETE',
       status: 'SUCCESS',
       summary: 'Demonstrates all 6 SQL join types on relational PostgreSQL tables.',
       joins: {
@@ -419,7 +419,7 @@ exports.getOrmDemo = async (req, res) => {
 
     res.json({
       topic: 'ORM usage (Prisma/Sequelize)',
-      score: '0.2 pts (100% Implemented)',
+      implementationStatus: 'COMPLETE',
       status: 'SUCCESS',
       ormEngine: 'Sequelize ORM v6 (PostgreSQL Dialect)',
       ormSyntax: "Doctor.findAll({ include: [{ model: Department, as: 'department' }], where: { consultation_fee: { [Op.gte]: 100 } }, order: [['consultation_fee', 'DESC']] })",

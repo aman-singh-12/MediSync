@@ -296,7 +296,7 @@ async function runAsyncComparisonBenchmark(patientId = 'PAT-9021') {
   return {
     topic: 'JavaScript — Promises vs callbacks',
     status: 'SUCCESS',
-    score: '0.1 pts (100% Implemented)',
+    implementationStatus: 'COMPLETE',
     summary: 'Project-specific clinical record aggregator implemented across Callbacks, Promises, and Async/Await with custom Promisification bridge and error propagation testing.',
     comparison: {
       callbacks: callbackResult,

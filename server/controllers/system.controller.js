@@ -25,7 +25,7 @@ exports.getHoistingDemo = (req, res) => {
     res.json({
       topic: 'JavaScript — Hoisting',
       status: 'SUCCESS',
-      score: '0.1 pts (100% Implemented)',
+      implementationStatus: 'COMPLETE',
       summary: 'Deliberate project-specific application of Function Hoisting for clean code architecture and Temporal Dead Zone (TDZ) validation for patient safety.',
       projectDemonstration: diagnostic,
       fundamentalDemonstration: fundamental

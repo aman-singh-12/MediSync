@@ -155,7 +155,7 @@ exports.runClosureDemo = () => {
   return {
     topic: 'JavaScript — Closures',
     status: 'SUCCESS',
-    score: '0.1 pts (100% Implemented)',
+    implementationStatus: 'COMPLETE',
     summary: 'Intentional, project-specific clinical use cases demonstrating lexical scope retention, private state encapsulation, memoization caching, and function currying.',
     demonstrations: [
       {

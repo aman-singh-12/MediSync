@@ -107,12 +107,12 @@ function runProjectHoistingDiagnostics() {
 
   try {
     // Evaluating var hoisting before assignment
-    const checkVar = typeof legacyTriageCode === 'undefined' ? legacyTriageCode : legacyTriageCode;
+    const checkVar = legacyTriageCode; // Evaluates to undefined due to declaration hoisting
     var legacyTriageCode = 'TRIAGE_CODE_RED';
     varBehavior = {
       valueBeforeAssignment: String(checkVar),
       valueAfterAssignment: legacyTriageCode,
-      behavior: 'Variable name is hoisted and initialized to undefined during Execution Context creation phase.'
+      behavior: 'Variable identifier is hoisted and initialized to undefined during the Execution Context Creation Phase.'
     };
   } catch (err) {
     varBehavior = { error: err.message };
@@ -121,7 +121,7 @@ function runProjectHoistingDiagnostics() {
   try {
     // Deliberate Temporal Dead Zone (TDZ) demonstration
     const tdzScope = () => {
-      const readBeforeInit = modernPrescriptionDose;
+      const readBeforeInit = modernPrescriptionDose; // Throws ReferenceError
       let modernPrescriptionDose = '500mg';
       return readBeforeInit;
     };
@@ -130,7 +130,7 @@ function runProjectHoistingDiagnostics() {
     letTdzBehavior = {
       caughtException: tdzErr.name,
       errorMessage: tdzErr.message,
-      explanation: 'Variables declared with let and const are hoisted to the block scope environment record, but are uninitialized and reside in the Temporal Dead Zone (TDZ) until the declaration line executes.'
+      explanation: 'Variables declared with let and const are hoisted to the block lexical environment, but remain uninitialized in the Temporal Dead Zone (TDZ) until the declaration line executes.'
     };
   }
 
@@ -138,7 +138,7 @@ function runProjectHoistingDiagnostics() {
     title: '2. Temporal Dead Zone (TDZ) vs Legacy var Hoisting',
     varDemonstration: varBehavior,
     tdzDemonstration: letTdzBehavior,
-    clinicalSignificance: 'TDZ prevents silent usage of uninitialized prescription dosage data (failing fast with ReferenceError rather than passing undefined into clinical formulas).',
+    clinicalSignificance: 'TDZ prevents silent usage of uninitialized prescription dosage data (failing fast with ReferenceError rather than passing undefined into clinical calculations).',
     status: 'PASS (TDZ verified)'
   });
 
@@ -171,8 +171,13 @@ function runProjectHoistingDiagnostics() {
   return {
     topic: 'JavaScript — Hoisting',
     status: 'SUCCESS',
-    score: '0.1 pts (100% Implemented)',
+    implementationStatus: 'COMPLETE',
     summary: 'Deliberate project-specific application of Function Hoisting for clean code architecture and Temporal Dead Zone (TDZ) validation for patient safety.',
+    vivaEvidence: {
+      stepdownPattern: 'processPatientAdmission() orchestrates validateVitalSigns(), calculateCardiovascularRisk(), and assignAttendingDoctor() which are declared at the bottom of the file.',
+      tdzSafety: 'TDZ prevents uninitialized reads of let/const clinical variables by throwing ReferenceError instead of silently propagating undefined.',
+      declarationVsExpression: 'Function declarations hoist both name and body; function expressions assigned to var hoist only the variable as undefined.'
+    },
     diagnostics: results
   };
 }
@@ -184,3 +189,4 @@ module.exports = {
   assignAttendingDoctor,
   runProjectHoistingDiagnostics
 };
+

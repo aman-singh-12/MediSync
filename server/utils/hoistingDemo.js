@@ -12,7 +12,7 @@ exports.runHoistingDemo = () => {
 
   // ================= 1. VAR HOISTING =================
   try {
-    const beforeVar = typeof hoistedVar === 'undefined' ? hoistedVar : hoistedVar;
+    const beforeVar = hoistedVar; // Evaluates to undefined due to hoisting
     var hoistedVar = 'I am a hoisted var value';
     const afterVar = hoistedVar;
     demonstrations.push({
@@ -29,7 +29,7 @@ exports.runHoistingDemo = () => {
   // ================= 2. LET & CONST (TEMPORAL DEAD ZONE - TDZ) =================
   let tdzLetError = null;
   try {
-    // Evaluating an uninitialized let in a closure/eval to safely simulate TDZ without syntax parse errors
+    // Evaluating an uninitialized let in a closure to safely demonstrate TDZ ReferenceError
     const testTDZ = () => {
       // In strict JS, referencing variable before `let` statement throws ReferenceError
       return uninitializedLet;
@@ -122,8 +122,9 @@ exports.runHoistingDemo = () => {
   return {
     topic: 'JavaScript — Hoisting',
     status: 'SUCCESS',
-    score: '0.1 pts (100% Implemented)',
+    implementationStatus: 'COMPLETE',
     summary: 'Comprehensive demonstration of Execution Context Creation Phase vs Execution Phase across var, let, const, functions, and classes.',
     demonstrations
   };
 };
+
