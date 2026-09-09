@@ -7,7 +7,7 @@ MediSync is a sophisticated, full-stack digital health management portal designe
 ## 🌐 Live Demo
 
 You can access the live version of the application here:
-**[MediSync Live (Vercel)](https://medi-sync-7zpm-l7a5jjio8-amans-projects-b25d385c.vercel.app/login)**
+**[MediSync Live (Vercel)]([https://medi-sync-7zpm-l7a5jjio8-amans-projects-b25d385c.vercel.app/login](https://medi-sync-7zpm.vercel.app/login))**
 
 ---
 
