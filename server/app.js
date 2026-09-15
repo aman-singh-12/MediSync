@@ -27,6 +27,7 @@ const { notFound, errorHandler } = require('./middleware/error.middleware');
 const { apiLimiter } = require('./middleware/rateLimiter.middleware');
 
 const app = express();
+app.set('trust proxy', 1); // Trust the reverse proxy (Render) to correctly resolve client IP for rate limiting
 
 // ================= VIEW ENGINE (SSR DEMO) =================
 // Configure Server-Side Rendering (SSR) view engine using EJS
