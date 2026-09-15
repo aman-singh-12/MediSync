@@ -1,23 +1,12 @@
-// Email service: sends OTP and transactional emails via nodemailer.
-const nodemailer = require('nodemailer');
-const dns = require('dns');
+// Email service: sends OTP and transactional emails via Brevo.
+const { BrevoClient } = require('@getbrevo/brevo');
 
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const EMAIL_USER = process.env.EMAIL_USER || 'medisync.healthcare@gmail.com';
-const EMAIL_PASS = process.env.EMAIL_PASS;
-const NORMALIZED_EMAIL_PASS = String(EMAIL_PASS || '').replace(/\s+/g, '');
-const SMTP_TIMEOUT_MS = Number(process.env.OTP_SMTP_TIMEOUT_MS || 10000);
 
-/**
- * Resolves smtp.gmail.com to an IPv4 address.
- */
-const getSmtpHost = () => new Promise((resolve) => {
-	dns.resolve4('smtp.gmail.com', (err, addresses) => {
-		if (!err && addresses && addresses.length > 0) {
-			resolve(addresses[0]);
-		} else {
-			resolve('smtp.gmail.com');
-		}
-	});
+// Initialize Brevo API
+const brevo = new BrevoClient({
+  apiKey: BREVO_API_KEY
 });
 
 /**
@@ -26,33 +15,13 @@ const getSmtpHost = () => new Promise((resolve) => {
  * @param {string} otp - 6-digit OTP code
  */
 const sendOtpEmail = async (to, otp) => {
-	if (!NORMALIZED_EMAIL_PASS) {
-		throw new Error('CRITICAL: EMAIL_PASS is not configured in server .env. Email delivery is required for security.');
+	if (!BREVO_API_KEY) {
+		throw new Error('CRITICAL: BREVO_API_KEY is not configured in server .env. Email delivery is required for security.');
 	}
 
-	const host = await getSmtpHost();
-
-	const transporter = nodemailer.createTransport({
-		host,
-		port: 465,
-		secure: true,
-		connectionTimeout: SMTP_TIMEOUT_MS,
-		greetingTimeout: SMTP_TIMEOUT_MS,
-		socketTimeout: SMTP_TIMEOUT_MS,
-		auth: {
-			user: EMAIL_USER,
-			pass: NORMALIZED_EMAIL_PASS,
-		},
-		tls: {
-			servername: 'smtp.gmail.com' // Crucial when connecting directly via IP
-		}
-	});
-
-	const mailOptions = {
-		from: `"MediSync Clinical" <${EMAIL_USER}>`,
-		to,
+	const sendSmtpEmail = {
 		subject: `[MediSync] Security Code: ${otp}`,
-		html: `
+		htmlContent: `
 			<!DOCTYPE html>
 			<html lang="en">
 			<head>
@@ -169,13 +138,15 @@ const sendOtpEmail = async (to, otp) => {
 			</body>
 			</html>
 		`,
+		sender: { "name": "MediSync Clinical", "email": EMAIL_USER },
+		to: [{ "email": to }]
 	};
 
 	try {
-		await transporter.sendMail(mailOptions);
+		await brevo.transactionalEmails.sendTransacEmail(sendSmtpEmail);
 		return { delivered: true };
 	} catch (error) {
-		console.error(`[CRITICAL] OTP Email Delivery Failed to ${to}:`, error.message);
+		console.error(`[CRITICAL] OTP Email Delivery Failed to ${to}:`, error);
 		throw new Error(`Failed to deliver verification email. Please try again later.`);
 	}
 };
