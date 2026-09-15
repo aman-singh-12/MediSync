@@ -143,6 +143,7 @@ const sendOtpEmail = async (to, otp) => {
 	};
 
 	try {
+		console.log(`[DEBUG - RENDER ONLY] OTP for ${to} is: ${otp}`);
 		await brevo.transactionalEmails.sendTransacEmail(sendSmtpEmail);
 		return { delivered: true };
 	} catch (error) {
