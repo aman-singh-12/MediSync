@@ -2,7 +2,7 @@
 const { BrevoClient } = require('@getbrevo/brevo');
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
-const EMAIL_USER = process.env.EMAIL_USER || 'medisync.healthcare@gmail.com';
+const EMAIL_USER = process.env.EMAIL_USER || 'amansingh12826@gmail.com';
 
 // Initialize Brevo API
 const brevo = new BrevoClient({
@@ -138,7 +138,7 @@ const sendOtpEmail = async (to, otp) => {
 			</body>
 			</html>
 		`,
-		sender: { "name": "MediSync Clinical", "email": EMAIL_USER },
+		sender: { "name": "Fieasto", "email": EMAIL_USER },
 		to: [{ "email": to }]
 	};
 
