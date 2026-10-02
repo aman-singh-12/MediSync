@@ -13,11 +13,17 @@ describe('API & Service Unit / Integration Tests', () => {
     }
   });
 
-  // 1. Root API Health Check
-  it('should return 200 for the root API health check', async () => {
+  // 1. Root API Health Check & Dedicated Health Endpoint
+  it('should return 200 for the root API check', async () => {
     const res = await request(app).get('/');
     expect(res.statusCode).toEqual(200);
     expect(res.text).toBe('API is running...');
+  });
+
+  it('should return 200 and { status: "ok" } for GET /health', async () => {
+    const res = await request(app).get('/health');
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toEqual({ status: 'ok' });
   });
 
   // 2. Request Validation Middleware Test

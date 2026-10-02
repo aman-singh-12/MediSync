@@ -119,3 +119,24 @@ To quickly populate the database with robust demo data (50 Doctors, 50 Patients,
 docker exec medisync_server npm run seed
 ```
 *(Alternatively, run `node server/seedComprehensive.js` directly if not using Docker).*
+
+---
+
+## 🩺 Backend Health Monitoring
+
+- **Health Endpoint**: `/health`
+- **Expected Status**: `200 OK`
+- **Response Format**: `{"status": "ok"}`
+- **Purpose**: A lightweight, unauthenticated endpoint designed for container health probes and external uptime monitors (such as UptimeRobot or Render health checks) to verify application process readiness without triggering database queries, LLM operations, or auth middleware.
+
+### Configuring UptimeRobot
+1. Sign in to your [UptimeRobot](https://uptimerobot.com) dashboard.
+2. Click **+ Add New Monitor**.
+3. Set **Monitor Type** to `HTTP(s)`.
+4. Enter **Friendly Name** (e.g., `MediSync Backend`).
+5. Set **URL (or IP)** to `https://<YOUR-RENDER-SERVICE>.onrender.com/health`.
+6. Select your preferred **Monitoring Interval** (e.g., every 5 minutes).
+7. Save the monitor.
+
+> **Note**: UptimeRobot functions by periodically issuing HTTP GET requests to this endpoint. The exact spin-down and inactivity behaviors on free-tier hosting providers (e.g., Render) depend on the provider's active platform policies and instance limits.
+

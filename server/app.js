@@ -56,6 +56,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/', apiLimiter);
 
 // ================= HEALTH & SSR ROUTES =================
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
