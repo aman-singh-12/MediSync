@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getPatientDashboard } from '../../services/patient.service';
+import { API_BASE_URL } from '../../services/api';
 import Button from '../../components/Button';
 import styles from './Dashboard.module.css';
 import { 
@@ -164,7 +165,9 @@ const PatientDashboard = () => {
                     onClick={() => {
                       const url = record.fileUrl || record.attachments?.[0];
                       if (!url) return;
-                      const finalUrl = url.startsWith('http') ? url : `http://localhost:5000${url}`;
+                      const finalUrl = (url.startsWith('http://') || url.startsWith('https://')) 
+                        ? url 
+                        : `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
                       window.open(finalUrl, '_blank');
                     }}
                   />

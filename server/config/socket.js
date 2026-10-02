@@ -9,10 +9,22 @@ const userSockets = new Map(); // Map user._id to socket.id
 const initializeSocket = (server) => {
   io = socketIo(server, {
     cors: {
-      origin: process.env.NODE_ENV === 'production' 
-        ? process.env.CLIENT_URL 
-        : (process.env.CLIENT_URL || '*'),
-      methods: ['GET', 'POST']
+      origin: (origin, callback) => {
+        if (
+          !origin ||
+          origin === 'https://medi-sync-7zpm.vercel.app' ||
+          origin.endsWith('.vercel.app') ||
+          origin.includes('localhost') ||
+          origin === process.env.CLIENT_URL ||
+          process.env.NODE_ENV !== 'production'
+        ) {
+          callback(null, true);
+        } else {
+          callback(null, true);
+        }
+      },
+      methods: ['GET', 'POST'],
+      credentials: true
     }
   });
 

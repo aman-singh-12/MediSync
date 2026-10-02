@@ -1,58 +1,64 @@
 const { getOpenAIProvider } = require("./openai.provider");
 const { getGroqProvider } = require("./groq.provider");
 
-const generateWithFallback = async (chainCallback, inputs) => {
-  try {
-    const openaiModel = getOpenAIProvider();
-    const chain = chainCallback(openaiModel);
-    console.log("LLM provider: OpenAI");
-    return await chain.invoke(inputs);
-  } catch (error) {
-    // Only fallback for typical API errors like rate limits, quota, timeouts
-    const isApiError = error.status === 429 || error.status >= 500 || error.message.includes('quota') || error.message.includes('timeout') || error.message.includes('rate limit');
-    
-    if (isApiError) {
-      console.warn(`OpenAI failed: ${error.message}`);
-      console.warn("Falling back to Groq");
-      
-      try {
-        const groqModel = getGroqProvider();
-        const chain = chainCallback(groqModel);
-        console.log("LLM provider: Groq");
-        return await chain.invoke(inputs);
-      } catch (groqError) {
-        console.error(`Groq fallback also failed: ${groqError.message}`);
-        throw groqError;
-      }
+const generateWithFallback = async (chainCallback, inputs, options = {}) => {
+  let primaryError = null;
+  
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const openaiModel = getOpenAIProvider();
+      const chain = chainCallback(openaiModel);
+      console.log("LLM provider: OpenAI");
+      return await chain.invoke(inputs, options);
+    } catch (error) {
+      primaryError = error;
+      console.warn(`[LLM Provider] OpenAI failed: ${error.message || error}. Falling back to Groq.`);
     }
-    
-    // If it's a programming error or another type of error, throw it immediately
-    throw error;
   }
+
+  if (process.env.GROQ_API_KEY) {
+    try {
+      const groqModel = getGroqProvider();
+      const chain = chainCallback(groqModel);
+      console.log("LLM provider: Groq");
+      return await chain.invoke(inputs, options);
+    } catch (groqError) {
+      console.error(`[LLM Provider] Groq fallback also failed: ${groqError.message || groqError}`);
+      throw groqError;
+    }
+  }
+
+  throw primaryError || new Error("No LLM API keys configured (OPENAI_API_KEY or GROQ_API_KEY required).");
 };
 
-const streamWithFallback = async (chainCallback, inputs) => {
-  try {
-    const openaiModel = getOpenAIProvider();
-    const chain = chainCallback(openaiModel);
-    console.log("LLM provider (Stream): OpenAI");
-    return await chain.stream(inputs);
-  } catch (error) {
-    const isApiError = error.status === 429 || error.status >= 500 || error.message.includes('quota') || error.message.includes('timeout') || error.message.includes('rate limit');
-    
-    if (isApiError) {
-      console.warn(`OpenAI streaming failed: ${error.message}. Falling back to Groq.`);
-      try {
-        const groqModel = getGroqProvider();
-        const chain = chainCallback(groqModel);
-        console.log("LLM provider (Stream): Groq");
-        return await chain.stream(inputs);
-      } catch (groqError) {
-        throw groqError;
-      }
+const streamWithFallback = async (chainCallback, inputs, options = {}) => {
+  let primaryError = null;
+  
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const openaiModel = getOpenAIProvider();
+      const chain = chainCallback(openaiModel);
+      console.log("LLM provider (Stream): OpenAI");
+      return await chain.stream(inputs, options);
+    } catch (error) {
+      primaryError = error;
+      console.warn(`[LLM Provider] OpenAI streaming failed: ${error.message || error}. Falling back to Groq.`);
     }
-    throw error;
   }
+
+  if (process.env.GROQ_API_KEY) {
+    try {
+      const groqModel = getGroqProvider();
+      const chain = chainCallback(groqModel);
+      console.log("LLM provider (Stream): Groq");
+      return await chain.stream(inputs, options);
+    } catch (groqError) {
+      console.error(`[LLM Provider] Groq streaming fallback failed: ${groqError.message || groqError}`);
+      throw groqError;
+    }
+  }
+
+  throw primaryError || new Error("No LLM API keys configured (OPENAI_API_KEY or GROQ_API_KEY required).");
 };
 
 module.exports = { generateWithFallback, streamWithFallback };

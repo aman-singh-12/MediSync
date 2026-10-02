@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 
 const MedicalKnowledge = () => {
   const [question, setQuestion] = useState('');
@@ -18,12 +18,7 @@ const MedicalKnowledge = () => {
     setSources([]);
 
     try {
-      const token = localStorage.getItem('medisync_token');
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/rag/query`, 
-        { question },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/api/rag/query', { question });
       
       setAnswer(response.data.answer);
       setSources(response.data.sources || []);

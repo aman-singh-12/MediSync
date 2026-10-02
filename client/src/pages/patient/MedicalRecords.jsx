@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import api from '../../services/api';
+import api, { API_BASE_URL } from '../../services/api';
 import { FiFileText, FiCalendar, FiUser, FiDownload, FiX, FiUpload } from 'react-icons/fi';
 import { useToast } from '../../components/ToastContext';
 
@@ -122,7 +122,9 @@ const MedicalRecords = () => {
                     onClick={() => {
                       const url = record.fileUrl || record.attachments?.[0];
                       if (!url) return;
-                      const finalUrl = url.startsWith('http') ? url : `http://localhost:5000${url}`;
+                      const finalUrl = (url.startsWith('http://') || url.startsWith('https://')) 
+                        ? url 
+                        : `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
                       window.open(finalUrl, '_blank');
                     }}
                     style={{ 

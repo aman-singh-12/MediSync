@@ -3,6 +3,26 @@
 // LLM AI RAG endpoint helpers, and 3rd-party gateway integrations (Razorpay & Google OAuth).
 import axios from "axios";
 
+// Canonical API Base URL from environment variable, falling back gracefully
+export const API_BASE_URL = (
+	import.meta.env.VITE_API_BASE_URL || 
+	import.meta.env.VITE_API_URL || 
+	""
+).replace(/\/+$/, "");
+
+// Helper: Safely retrieves the stored authentication token
+export const getStoredToken = () => {
+	try {
+		const token = localStorage.getItem("medisync_token");
+		if (!token || token === "undefined" || token === "null") {
+			return "";
+		}
+		return String(token);
+	} catch {
+		return "";
+	}
+};
+
 // Helper: Normalizes URL paths avoiding double '/api/api' duplicates
 const normalizeApiPath = (baseURL = "", url = "") => {
 	if (!url || /^https?:\/\//i.test(url)) {
@@ -23,7 +43,7 @@ const normalizeApiPath = (baseURL = "", url = "") => {
 
 // 1. Create Axios instance with base URL and timeout
 const api = axios.create({
-	baseURL: (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, ""),
+	baseURL: API_BASE_URL,
 	timeout: 30000,
 	headers: {
 		"Content-Type": "application/json",
@@ -34,7 +54,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
 	config.url = normalizeApiPath(config.baseURL, config.url);
 
-	const token = localStorage.getItem("medisync_token");
+	const token = getStoredToken();
 
 	if (token) {
 		config.headers.Authorization = `Bearer ${token}`;

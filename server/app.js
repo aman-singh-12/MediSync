@@ -42,7 +42,37 @@ app.use(compression());
 app.use(morgan(':method :url :status :response-time ms'));
 
 // 3. Cross-Origin Resource Sharing (CORS) & JSON body parser
-app.use(cors());
+const allowedOrigins = [
+  'https://medi-sync-7zpm.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (Postman, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin matches known allowed origins or Vercel preview URLs
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      process.env.NODE_ENV !== 'production'
+    ) {
+      return callback(null, true);
+    }
+    
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // 4. Security: Input Sanitization (Protects against XSS and NoSQL Query Injection)

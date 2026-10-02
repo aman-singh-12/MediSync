@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiMessageSquare, FiX, FiSend, FiChevronDown } from 'react-icons/fi';
-import api from '../../services/api';
+import api, { API_BASE_URL, getStoredToken } from '../../services/api';
 import styles from './AIChatbot.module.css';
 
 const AIChatbot = () => {
@@ -10,6 +10,7 @@ const AIChatbot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   // Auto-scroll to newest message
   const scrollToBottom = () => {
@@ -38,6 +39,15 @@ const AIChatbot = () => {
     }
   }, [isOpen, messages.length]);
 
+  // Cleanup active stream on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
@@ -55,12 +65,11 @@ const AIChatbot = () => {
 
   const handleQuickQuestion = (question) => {
     setInputValue(question);
-    // Focus the input so the user can edit or we could just send immediately.
-    // For a smoother UX, we will send it immediately.
+    // Focus the input so the user can edit or send immediately.
     handleSendMessage(question);
   };
 
-  // sendMessage abstracts the API call for future Multi-step Agent architecture
+  // sendMessage abstracts the API call for streaming RAG responses
   const sendMessage = async (messageText) => {
     setIsLoading(true);
     // Add AI placeholder message to UI for streaming
@@ -72,6 +81,11 @@ const AIChatbot = () => {
       sources: []
     }]);
 
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     try {
       // Get the last 6 messages to send as history, excluding system/welcome messages and errors
       const historyToSend = messages
@@ -79,9 +93,14 @@ const AIChatbot = () => {
         .slice(-6)
         .map(m => ({ role: m.role, content: m.content }));
 
-      const token = localStorage.getItem('token');
+      const token = getStoredToken();
+      if (!token) {
+        throw new Error('Please sign in to chat with the MediSync Assistant.');
+      }
       
-      const response = await fetch('http://localhost:5000/api/rag/query-stream', {
+      const streamEndpoint = `${API_BASE_URL}/api/rag/query-stream`;
+      
+      const response = await fetch(streamEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,11 +109,20 @@ const AIChatbot = () => {
         body: JSON.stringify({
           question: messageText,
           chatHistory: historyToSend
-        })
+        }),
+        signal: abortControllerRef.current.signal
       });
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        if (response.status === 401) {
+          throw new Error('Your session has expired. Please sign in again.');
+        } else if (response.status === 429) {
+          throw new Error('Too many requests. Please wait a moment before trying again.');
+        } else if (response.status >= 500) {
+          throw new Error('The MediSync AI service is currently unavailable. Please try again shortly.');
+        } else {
+          throw new Error(`Request failed (Status ${response.status}). Please try again.`);
+        }
       }
 
       setIsLoading(false); // Stop general loading indicator, start streaming text
@@ -135,13 +163,23 @@ const AIChatbot = () => {
       }
 
     } catch (error) {
+      if (error.name === 'AbortError') return;
+
       console.error('Chatbot API Error:', error);
+      let userFriendlyMessage = "Sorry, I couldn't process that request right now. Please try again.";
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        userFriendlyMessage = "Unable to connect to the MediSync AI server. Please check your connection or try again.";
+      } else if (error.message) {
+        userFriendlyMessage = error.message;
+      }
+
       const errorMessage = {
         id: Date.now().toString() + '_error',
         role: 'error',
-        content: "Sorry, I couldn't process that request right now. Please try again."
+        content: userFriendlyMessage
       };
-      setMessages(prev => [...prev, errorMessage]);
+      // Remove empty AI placeholder message and replace with error
+      setMessages(prev => [...prev.filter(m => m.id !== aiMessageId || m.content), errorMessage]);
       setIsLoading(false);
     }
   };

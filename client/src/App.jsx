@@ -3,9 +3,10 @@ import AuthRoutes from "./routes/AuthRoutes";
 import useAuth from "./hooks/useAuth";
 import { useToast } from "./components/ToastContext";
 import { io } from "socket.io-client";
+import { API_BASE_URL } from "./services/api";
 
 // Initialize Socket.IO client connection
-const socket = io(import.meta.env.VITE_API_URL || "http://localhost:5000");
+const socket = io(API_BASE_URL || undefined);
 
 const App = () => {
 	const { user, isAuthenticated } = useAuth();

@@ -12,10 +12,15 @@ const getVectorStore = async () => {
 };
 
 const retrieveSimilarDocuments = async (query, topK = 3) => {
-  const vectorStore = await getVectorStore();
-  // Using similaritySearchWithScore to evaluate relevance
-  const results = await vectorStore.similaritySearchWithScore(query, topK);
-  return results;
+  try {
+    const vectorStore = await getVectorStore();
+    // Using similaritySearchWithScore to evaluate relevance
+    const results = await vectorStore.similaritySearchWithScore(query, topK);
+    return results;
+  } catch (error) {
+    console.warn(`[RAG Retriever] ChromaDB retrieval skipped or unavailable: ${error.message || error}`);
+    return [];
+  }
 };
 
 module.exports = { getVectorStore, retrieveSimilarDocuments };

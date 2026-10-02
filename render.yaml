@@ -11,10 +11,17 @@ services:
         value: production
       - key: PORT
         value: 5000
-      - key: MONGODB_URI
+      - key: MONGO_URI
         sync: false
       - key: JWT_SECRET
         sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
+      - key: CLIENT_URL
+        value: https://medi-sync-7zpm.vercel.app
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+
 
