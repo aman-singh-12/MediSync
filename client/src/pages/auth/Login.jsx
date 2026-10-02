@@ -168,7 +168,7 @@ const Login = () => {
 						<GoogleLogin
 							onSuccess={handleGoogleSuccess}
 							onError={() => {
-								setAlert({ type: "error", message: "Google Login Failed" });
+								setAlert({ type: "error", message: "Google Sign-In failed or was cancelled. Please check Google OAuth configuration." });
 							}}
 						/>
 					</div>

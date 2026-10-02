@@ -138,15 +138,15 @@ export const AuthProvider = ({ children }) => {
 		[persistSession]
 	);
 
-	// ================= GOOGLE LOGIN HANDLER =================
-	// 5. Google OAuth login handler
+	// ================= GOOGLE LOGIN & REGISTRATION HANDLER =================
+	// 5. Google OAuth login/registration handler
 	const googleLogin = useCallback(
-		async (credential) => {
+		async (credential, role = "patient") => {
 			setAuthLoading(true);
 			try {
-				const data = await googleLoginUser(credential);
+				const data = await googleLoginUser(credential, role);
 				const { nextToken, nextUser } = extractSessionFromAuthPayload(data, {
-					role: "patient",
+					role: data?.role || role || "patient",
 				});
 
 				if (!nextToken) {

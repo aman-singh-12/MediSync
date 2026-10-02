@@ -70,4 +70,17 @@ describe('API & Service Unit / Integration Tests', () => {
     expect(res.body).toHaveProperty('status', 'SUCCESS');
     expect(res.body).toHaveProperty('eagerLoadingDemonstrated', true);
   });
+
+  // 6. Google Auth Endpoint Validation Tests
+  it('should return 400 when Google credential is missing', async () => {
+    const res = await request(app).post('/api/auth/google').send({});
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toHaveProperty('errors');
+    expect(res.body.errors[0].msg).toContain('Credential is required');
+  });
+
+  it('should return 401 or 500 when invalid Google token is passed', async () => {
+    const res = await request(app).post('/api/auth/google').send({ credential: 'invalid-fake-token-123' });
+    expect([401, 500]).toContain(res.statusCode);
+  });
 });

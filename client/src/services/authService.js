@@ -36,10 +36,11 @@ export const resetPassword = async (payload) => {
   return response.data;
 };
 
-// ================= GOOGLE LOGIN =================
-// 6. Authenticate via Google OAuth credential token
-export const googleLoginUser = async (credential) => {
-  const response = await api.post("/api/auth/google", { credential });
+// ================= GOOGLE LOGIN & REGISTRATION =================
+// 6. Authenticate / register via Google OAuth credential token
+export const googleLoginUser = async (credential, role = 'patient') => {
+  const response = await api.post("/api/auth/google", { credential, role });
   return response.data;
 };
+
 

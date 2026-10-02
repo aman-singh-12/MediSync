@@ -1,9 +1,11 @@
-// Register Page: allows patients and doctors to create an account, then redirects to OTP verification.
+// Register Page: allows patients and doctors to create an account, then redirects to OTP verification or 1-click Google signup.
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 import { FiUserCheck, FiLayout, FiClock } from "react-icons/fi";
 import Button from "../../components/Button";
 import InputField from "../../components/InputField";
+import useAuth from "../../hooks/useAuth";
 import { registerUser } from "../../services/authService";
 import { validateRegisterForm } from "../../utils/validators";
 import styles from "./AuthPages.module.css";
@@ -32,6 +34,22 @@ const Register = () => {
 	const [alert, setAlert] = useState(null);
 	const [agreed, setAgreed] = useState(false);
 	const navigate = useNavigate();
+	const { googleLogin } = useAuth();
+
+	// Handle Google 1-Click Registration / Login
+	const handleGoogleSuccess = async (credentialResponse) => {
+		setAlert(null);
+		try {
+			const res = await googleLogin(credentialResponse.credential, role);
+			if (res.success) {
+				navigate("/dashboard", { replace: true });
+			} else {
+				setAlert({ type: "error", message: res.message || "Google registration failed." });
+			}
+		} catch (err) {
+			setAlert({ type: "error", message: "Google Registration failed. Please try again." });
+		}
+	};
 
 	// Format phone numbers and update form values
 	const handleChange = (e) => {
@@ -160,6 +178,22 @@ const Register = () => {
 								{r}
 							</button>
 						))}
+					</div>
+
+					{/* 1-Click Google Registration */}
+					<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '20px 0 10px' }}>
+						<GoogleLogin
+							text="signup_with"
+							shape="pill"
+							onSuccess={handleGoogleSuccess}
+							onError={() => setAlert({ type: "error", message: "Google Sign-Up failed or was cancelled. Please check Google OAuth configuration." })}
+						/>
+					</div>
+
+					<div style={{ display: 'flex', alignItems: 'center', margin: '16px 0 20px' }}>
+						<div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }}></div>
+						<div style={{ margin: '0 10px', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 600 }}>OR FILL FORM MANUALLY</div>
+						<div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }}></div>
 					</div>
 
 					{alert && <div className={`${styles.alert} ${styles.errorAlert}`} style={{ marginBottom: '24px' }}>{alert.message}</div>}

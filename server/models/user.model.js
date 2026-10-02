@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema(
     otpAttempts: { type: Number, default: 0 },
     passwordResetOtpVerifiedUntil: { type: Date, default: null },
     isEmailVerified: { type: Boolean, default: false },
+    googleId: { type: String, default: null, index: true },
+    authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
     profilePicture: { type: String, default: '' },
     savedDoctors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' }],
     walletBalance: { type: Number, default: 0 },

@@ -157,14 +157,18 @@ exports.login = async (req, res) => {
 
 
 
-// ================= GOOGLE LOGIN =================
-// Logic: Verifies Google ID token, finds or auto-creates user, creates Patient profile if new, returns JWT token
+// ================= GOOGLE LOGIN / REGISTRATION =================
+// Logic: Verifies Google ID token, finds or auto-creates user (with chosen role: patient/doctor), safely links existing accounts, creates linked profile if new, returns JWT token
 exports.googleLogin = async (req, res) => {
   try {
-    // 1. Get Google credential token from frontend
-    const { credential } = req.body;
+    // 1. Get Google credential token and optional role from frontend
+    const { credential, role = 'patient' } = req.body;
     if (!credential) {
       return res.status(400).json({ message: 'Missing Google credential' });
+    }
+
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      return res.status(500).json({ message: 'Google OAuth is not configured on the server. Please set GOOGLE_CLIENT_ID.' });
     }
 
     // 2. Verify token with Google Auth client
@@ -173,33 +177,65 @@ exports.googleLogin = async (req, res) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     
-    // 3. Extract user information from Google payload
+    // 3. Extract verified user information from Google payload
     const payload = ticket.getPayload();
-    const email = payload.email;
-    const name = payload.name;
-    const profilePicture = payload.picture;
+    const googleId = payload.sub;
+    const email = String(payload.email || '').toLowerCase().trim();
+    const name = payload.name || payload.given_name || 'MediSync User';
+    const profilePicture = payload.picture || '';
 
-    // 4. Check if user already exists in database
-    let user = await User.findOne({ email });
+    // 4. Check if user already exists in database (by email or googleId)
+    let user = await User.findOne({ $or: [{ email }, { googleId }] });
 
-    // 5. If new user, create User account and default Patient profile
-    if (!user) {
-      const randomPassword = await bcrypt.hash(Math.random().toString(36).slice(-10), 10);
+    if (user) {
+      // Safe account linking: Link Google ID and mark verified if originally registered via email/password
+      let updated = false;
+      if (!user.googleId) {
+        user.googleId = googleId;
+        updated = true;
+      }
+      if (!user.isEmailVerified) {
+        user.isEmailVerified = true;
+        updated = true;
+      }
+      if (!user.profilePicture && profilePicture) {
+        user.profilePicture = profilePicture;
+        updated = true;
+      }
+      if (updated) {
+        await user.save();
+      }
+    } else {
+      // 5. If new user, create User account and default profile
+      const selectedRole = role === 'doctor' ? 'doctor' : 'patient';
+      const randomPassword = await bcrypt.hash(Math.random().toString(36).slice(-12), 10);
       user = await User.create({
         name,
         email,
         password: randomPassword,
-        role: 'patient', // default role for Google sign-in
+        role: selectedRole,
+        googleId,
+        authProvider: 'google',
         profilePicture,
         isEmailVerified: true // auto-verified via Google
       });
 
-      // Create linked Patient profile
-      await Patient.create({
-        user: user._id,
-        gender: '',
-        dateOfBirth: null
-      });
+      // Create linked role profile
+      if (selectedRole === 'doctor') {
+        await Doctor.create({
+          user: user._id,
+          specialization: 'General Practice',
+          experienceYears: 0,
+          consultationFee: 0,
+          isApproved: false
+        });
+      } else {
+        await Patient.create({
+          user: user._id,
+          gender: '',
+          dateOfBirth: null
+        });
+      }
     }
 
     // 6. Return user details and JWT token
@@ -209,12 +245,12 @@ exports.googleLogin = async (req, res) => {
       email: user.email,
       role: user.role,
       profilePicture: user.profilePicture || '',
-      token: generateToken(user._id),
+      token: generateToken(user._id, user.role),
     });
     
   } catch (error) {
-    console.error('Google login error:', error);
-    res.status(401).json({ message: 'Invalid Google token' });
+    console.error('Google login error:', error.message || error);
+    res.status(401).json({ message: 'Invalid or expired Google token' });
   }
 };
 
