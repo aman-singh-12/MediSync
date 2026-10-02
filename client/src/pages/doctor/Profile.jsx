@@ -8,9 +8,8 @@ import { getMyDoctorProfile } from '../../services/doctor.service';
 import { uploadProfilePicture } from '../../services/user.service';
 import useAuth from '../../hooks/useAuth';
 import { useToast } from '../../components/ToastContext';
+import { getImageUrl } from '../../utils/imageUrl';
 import styles from './DoctorProfile.module.css';
-
-const SERVER = 'http://localhost:5000';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
@@ -50,7 +49,7 @@ const Profile = () => {
   };
 
   const avatarSrc = user?.profilePicture
-    ? `${SERVER}${user.profilePicture}`
+    ? getImageUrl(user.profilePicture)
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Doctor')}&background=1b6348&color=fff&size=128`;
 
   if (loading) {
@@ -94,7 +93,9 @@ const Profile = () => {
               </label>
             </div>
 
-            <h2 style={{ margin: '0 0 4px', fontSize: '1.25rem', fontWeight: 800 }}>Dr. {user?.name}</h2>
+            <h2 style={{ margin: '0 0 4px', fontSize: '1.25rem', fontWeight: 800 }}>
+              {user?.name?.startsWith('Dr.') ? user?.name : `Dr. ${user?.name || ''}`}
+            </h2>
             <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: 'var(--brand-primary)', fontWeight: 700 }}>
               {profile?.specialization || 'General Practitioner'}
             </p>

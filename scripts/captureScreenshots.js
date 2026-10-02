@@ -28,9 +28,9 @@ async function main() {
   console.log('Connecting to database to fetch test users...');
   await mongoose.connect(process.env.MONGO_URI);
 
-  const patientUser = await User.findOne({ role: 'patient' });
-  const doctorUser = await User.findOne({ role: 'doctor' });
-  const adminUser = await User.findOne({ role: 'admin' });
+  const patientUser = await User.findOne({ email: 'patient.demo@medisync.com' }) || await User.findOne({ role: 'patient' });
+  const doctorUser = await User.findOne({ email: 'dr.clare@medisync.com' }) || await User.findOne({ role: 'doctor' });
+  const adminUser = await User.findOne({ email: 'admin@medisync.com' });
 
   if (!patientUser || !doctorUser || !adminUser) {
     console.error('Missing user roles for capturing authenticated pages');
@@ -45,7 +45,7 @@ async function main() {
   
   const setupContext = async (user, token) => {
     const context = await browser.newContext({
-      viewport: { width: 1440, height: 900 },
+      viewport: { width: 1440, height: 960 },
       deviceScaleFactor: 1.5,
     });
     if (user && token) {
@@ -78,7 +78,25 @@ async function main() {
     { name: '10_Patient_Book_Appointment.png', path: '/book-appointment', role: 'patient' },
     { name: '11_Patient_Appointments_History.png', path: '/appointment-history', role: 'patient' },
     { name: '12_Patient_Medical_Records.png', path: '/medical-records', role: 'patient' },
-    { name: '13_Patient_Medical_Knowledge_AI.png', path: '/medical-knowledge', role: 'patient' },
+    { 
+      name: '13_Patient_Medical_Knowledge_AI.png', 
+      path: '/medical-knowledge', 
+      role: 'patient',
+      action: async (page) => {
+        try {
+          const input = page.locator('input[placeholder*="fasting blood test"]');
+          if (await input.count() > 0) {
+            await input.fill('What precautions should I take before a fasting blood sugar test?');
+            await page.waitForTimeout(300);
+            const askBtn = page.locator('button:has-text("Ask")');
+            if (await askBtn.count() > 0) {
+              await askBtn.click();
+              await page.waitForTimeout(2500);
+            }
+          }
+        } catch (e) {}
+      }
+    },
     { name: '14_Patient_Favorites.png', path: '/favorites', role: 'patient' },
     { name: '15_Patient_Payments.png', path: '/payments', role: 'patient' },
     { name: '16_Patient_Settings.png', path: '/settings', role: 'patient' },
@@ -96,7 +114,6 @@ async function main() {
     { name: '24_Admin_Dashboard.png', path: '/dashboard', role: 'admin' },
     { name: '25_Admin_Verify_Doctors.png', path: '/admin/doctors', role: 'admin' },
     { name: '26_Admin_Manage_Users.png', path: '/admin/users', role: 'admin' },
-    { name: '27_Admin_Rubric_Lab.png', path: '/admin/rubric-lab', role: 'admin' },
   ];
 
   for (const pageInfo of pagesToCapture) {
@@ -119,9 +136,12 @@ async function main() {
 
     try {
       console.log(`Capturing [${pageInfo.role}] ${pageInfo.path} -> ${pageInfo.name}`);
-      await page.goto(`${BASE_URL}${pageInfo.path}`, { waitUntil: 'networkidle', timeout: 15000 });
-      // Give a little time for animations, cards, and data queries to settle
-      await page.waitForTimeout(1200);
+      await page.goto(`${BASE_URL}${pageInfo.path}`, { waitUntil: 'networkidle', timeout: 20000 });
+      await page.waitForTimeout(1500);
+
+      if (pageInfo.action) {
+        await pageInfo.action(page);
+      }
 
       const filePath = path.join(OUTPUT_DIR, pageInfo.name);
       await page.screenshot({ path: filePath, fullPage: true });
@@ -140,7 +160,7 @@ async function main() {
 
   await browser.close();
   await mongoose.disconnect();
-  console.log(`\n🎉 Finished! All screenshots saved in: ${OUTPUT_DIR}`);
+  console.log(`\n🎉 Finished! All updated seed-rich screenshots saved in: ${OUTPUT_DIR}`);
 }
 
 main().catch((err) => {
