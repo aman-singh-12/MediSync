@@ -72,7 +72,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options(/(.*)/, cors(corsOptions));
 app.use(express.json());
 
 // 4. Security: Input Sanitization (Protects against XSS and NoSQL Query Injection)

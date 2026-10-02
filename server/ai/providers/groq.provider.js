@@ -6,7 +6,7 @@ const getGroqProvider = () => {
   }
   return new ChatGroq({
     apiKey: process.env.GROQ_API_KEY,
-    model: 'llama-3.1-8b-instant',
+    model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
     temperature: 0,
     maxTokens: 1024,
   });

@@ -153,14 +153,24 @@ const AIChatbot = () => {
                   ));
                 } else if (data.type === 'error') {
                   console.error('Stream error:', data.message);
+                  throw new Error(data.message || 'Error streaming AI response');
                 }
               } catch (e) {
+                if (e.message && data.type === 'error') throw e;
                 console.warn('Error parsing stream data', e);
               }
             }
           }
         }
       }
+
+      // If stream ended with no content, replace with fallback
+      setMessages(prev => prev.map(msg => {
+        if (msg.id === aiMessageId && !msg.content) {
+          return { ...msg, content: "I'm having trouble processing that question. Please try asking again." };
+        }
+        return msg;
+      }));
 
     } catch (error) {
       if (error.name === 'AbortError') return;
